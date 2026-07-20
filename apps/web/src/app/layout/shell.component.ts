@@ -1,10 +1,12 @@
-import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { RouterLink, RouterLinkActive, RouterOutlet, Router } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
+import { MatMenuModule } from '@angular/material/menu';
+import { AuthService } from '../core/auth/auth.service';
 
 /**
  * Application shell — toolbar + side navigation that hosts the ordering
@@ -22,6 +24,7 @@ import { MatListModule } from '@angular/material/list';
     MatIconModule,
     MatSidenavModule,
     MatListModule,
+    MatMenuModule,
   ],
   template: `
     <mat-toolbar color="primary">
@@ -33,6 +36,18 @@ import { MatListModule } from '@angular/material/list';
       <button mat-button routerLink="/main/cart">
         <mat-icon>shopping_cart</mat-icon> Cart
       </button>
+      <button mat-icon-button [matMenuTriggerFor]="userMenu" aria-label="Account">
+        <mat-icon>account_circle</mat-icon>
+      </button>
+      <mat-menu #userMenu="matMenu">
+        <div class="user-info" mat-menu-item disabled>
+          {{ auth.user()?.name }}
+        </div>
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          <span>Sign out</span>
+        </button>
+      </mat-menu>
     </mat-toolbar>
 
     <mat-sidenav-container class="wd-shell">
@@ -68,7 +83,19 @@ import { MatListModule } from '@angular/material/list';
       .active-link {
         background: rgba(103, 58, 183, 0.1);
       }
+      .user-info {
+        font-weight: 500;
+        opacity: 1 !important;
+      }
     `,
   ],
 })
-export class ShellComponent {}
+export class ShellComponent {
+  readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+
+  logout(): void {
+    this.auth.logout();
+    this.router.navigateByUrl('/login');
+  }
+}

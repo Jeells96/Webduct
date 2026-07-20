@@ -16,6 +16,10 @@
     "prisma:seed": "npm --workspace @webduct/api run prisma:seed"
   },
   "devDependencies": {
-    "concurrently": "^9.1.0"
+    "concurrently": "^9.1.0",
+    "playwright-core": "^1.49.0"
+  },
+  "overrides": {
+    "rxjs": "7.8.2"
   }
 }

@@ -19,7 +19,9 @@
     "module": "ES2022",
     "useDefineForClassFields": false,
     "paths": {
-      "@webduct/shared": ["../../libs/shared/src/index.ts"]
+      "@webduct/shared": ["../../libs/shared/src/index.ts"],
+      "rxjs": ["../../node_modules/rxjs"],
+      "rxjs/*": ["../../node_modules/rxjs/*"]
     },
     "lib": [
       "ES2022",
