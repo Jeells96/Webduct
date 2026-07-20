@@ -1,0 +1,21 @@
+{
+  "name": "webduct",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Webduct ordering platform — full-parity rebuild of the Buildcentrix ordering UI",
+  "workspaces": [
+    "libs/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,magenta \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:api": "npm --workspace @webduct/api run start:dev",
+    "dev:web": "npm --workspace @webduct/web run start",
+    "build": "npm run build --workspaces --if-present",
+    "prisma:migrate": "npm --workspace @webduct/api run prisma:migrate",
+    "prisma:seed": "npm --workspace @webduct/api run prisma:seed"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
