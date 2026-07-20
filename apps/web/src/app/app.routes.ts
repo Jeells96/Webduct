@@ -26,9 +26,9 @@ export const routes: Routes = [
       },
       {
         path: 'catalog',
-        loadComponent: () =>
-          import('./features/manage-product/manage-product.component').then(
-            (m) => m.ManageProductComponent,
+        loadChildren: () =>
+          import('./features/manage-product/manage-product.routes').then(
+            (m) => m.manageProductRoutes,
           ),
       },
       {

@@ -1,0 +1,53 @@
+<div class="wd-page">
+  <div style="display:flex; align-items:center; gap:16px;">
+    <h1 style="flex:1 1 auto;">Products</h1>
+    <a mat-raised-button color="primary" routerLink="/main/catalog/new">
+      <mat-icon>add</mat-icon> New Product
+    </a>
+  </div>
+
+  <mat-card>
+    @if (loading()) {
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    }
+    <table mat-table [dataSource]="rows()">
+      <ng-container matColumnDef="sku">
+        <th mat-header-cell *matHeaderCellDef>SKU</th>
+        <td mat-cell *matCellDef="let p">{{ p.sku }}</td>
+      </ng-container>
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>Name</th>
+        <td mat-cell *matCellDef="let p">{{ p.name }}</td>
+      </ng-container>
+      <ng-container matColumnDef="type">
+        <th mat-header-cell *matHeaderCellDef>Type</th>
+        <td mat-cell *matCellDef="let p">
+          <mat-chip-set>
+            <mat-chip>{{ p.type === 'WITH_ATTRIBUTES' ? 'Configurable' : 'Simple' }}</mat-chip>
+          </mat-chip-set>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="price">
+        <th mat-header-cell *matHeaderCellDef class="num">Price</th>
+        <td mat-cell *matCellDef="let p" class="num">{{ p.basePrice | currency }}</td>
+      </ng-container>
+      <ng-container matColumnDef="weight">
+        <th mat-header-cell *matHeaderCellDef class="num">Weight</th>
+        <td mat-cell *matCellDef="let p" class="num">{{ p.weight }} lb</td>
+      </ng-container>
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef class="actions">Actions</th>
+        <td mat-cell *matCellDef="let p" class="actions">
+          <button mat-icon-button color="primary" (click)="addToCart(p)" aria-label="Add to cart">
+            <mat-icon>add_shopping_cart</mat-icon>
+          </button>
+          <a mat-icon-button [routerLink]="['/main/catalog', p.id]" aria-label="Edit">
+            <mat-icon>edit</mat-icon>
+          </a>
+        </td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="columns"></tr>
+      <tr mat-row *matRowDef="let row; columns: columns"></tr>
+    </table>
+  </mat-card>
+</div>

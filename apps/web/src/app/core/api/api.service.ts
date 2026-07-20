@@ -8,7 +8,10 @@ import { API_BASE_URL } from './api.config';
 export class ApiService {
   private readonly http = inject(HttpClient);
 
-  get<T>(path: string, params?: Record<string, string | number | undefined>): Observable<T> {
+  get<T>(
+    path: string,
+    params?: Record<string, string | number | undefined | null>,
+  ): Observable<T> {
     return this.http.get<T>(`${API_BASE_URL}${path}`, {
       params: this.toParams(params),
     });
@@ -26,7 +29,9 @@ export class ApiService {
     return this.http.delete<T>(`${API_BASE_URL}${path}`);
   }
 
-  private toParams(params?: Record<string, string | number | undefined>): HttpParams {
+  private toParams(
+    params?: Record<string, string | number | undefined | null>,
+  ): HttpParams {
     let p = new HttpParams();
     if (params) {
       for (const [k, v] of Object.entries(params)) {
