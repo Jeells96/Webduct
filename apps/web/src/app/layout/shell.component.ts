@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet, Router } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -6,7 +7,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatBadgeModule } from '@angular/material/badge';
 import { AuthService } from '../core/auth/auth.service';
+import { CartService } from '../core/services/cart.service';
 
 /**
  * Application shell — toolbar + side navigation that hosts the ordering
@@ -25,6 +28,7 @@ import { AuthService } from '../core/auth/auth.service';
     MatSidenavModule,
     MatListModule,
     MatMenuModule,
+    MatBadgeModule,
   ],
   template: `
     <mat-toolbar color="primary">
@@ -34,7 +38,8 @@ import { AuthService } from '../core/auth/auth.service';
       <span>Webduct</span>
       <span class="wd-spacer"></span>
       <button mat-button routerLink="/main/cart">
-        <mat-icon>shopping_cart</mat-icon> Cart
+        <mat-icon [matBadge]="cartCount() || null" matBadgeColor="accent" matBadgeSize="small">shopping_cart</mat-icon>
+        Cart
       </button>
       <button mat-icon-button [matMenuTriggerFor]="userMenu" aria-label="Account">
         <mat-icon>account_circle</mat-icon>
@@ -90,7 +95,14 @@ import { AuthService } from '../core/auth/auth.service';
     `,
   ],
 })
-export class ShellComponent {
+export class ShellComponent implements OnInit {
+  private readonly cartSvc = inject(CartService);
+  readonly cartCount = this.cartSvc.itemCount;
+
+  ngOnInit(): void {
+    this.cartSvc.load().subscribe();
+  }
+
   readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 

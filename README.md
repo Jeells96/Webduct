@@ -41,11 +41,36 @@ npm run dev
 
 Open <http://localhost:4200/#!/main/order>.
 
-## Build phases
+## Demo login
 
-The rebuild is delivered in independently-runnable phases; see the plan in the
-project notes. Phase 0 (this commit) scaffolds the workspace, the deep-purple
-Material shell with hashbang routing, and the API health endpoint.
+Seeded users (password `password123`): `admin@webduct.test` (admin),
+`foreman@webduct.test`, `measurer@webduct.test`.
+
+## What's implemented
+
+The full ordering workflow is built and verified end-to-end:
+
+- **Auth** — JWT login/refresh, route guard, role-based admin actions.
+- **Catalog / manage-product** — simple & configurable products, CKEditor
+  descriptions, dynamic attributes, images, catalogs/categories.
+- **Cart** — line items, quantity editing, live count/price/weight totals.
+- **Submit-order wizard** — job, order details, dates, shipping (with
+  delivery-window validation), instructions (CKEditor), dynamic custom form,
+  notifications (email/user/crew with uniqueness + ≤255 email), and attachments
+  (size/type-limited uploads). Converts the cart into an order.
+- **Complete-order** — confirmation with order number and pricing/delivery
+  messages.
+- **3D viewer** — Three.js/WebGL duct preview with orbit controls.
+- **Hardening** — server-side HTML sanitization (DOMPurify), shared client/server
+  validation constants, and a committed end-to-end smoke test
+  (`node tests/e2e/smoke.mjs`).
+
+## Testing
+
+```bash
+# with the API + web dev servers running and the DB seeded:
+node tests/e2e/smoke.mjs
+```
 
 ## Provenance
 
