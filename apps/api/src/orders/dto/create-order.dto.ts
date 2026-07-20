@@ -5,6 +5,7 @@ import {
   IsISO8601,
   IsOptional,
   IsString,
+  Allow,
   MaxLength,
   ValidateNested,
 } from 'class-validator';
@@ -37,6 +38,7 @@ export class CustomFieldValueInput {
   @IsString()
   defId!: string;
 
+  @Allow()
   value!: unknown;
 }
 

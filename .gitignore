@@ -6,3 +6,4 @@ dist/
 .DS_Store
 coverage/
 apps/api/prisma/*.db
+apps/api/uploads/

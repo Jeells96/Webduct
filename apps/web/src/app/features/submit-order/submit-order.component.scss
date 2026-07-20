@@ -57,3 +57,16 @@
     margin: 12px 0 20px;
   }
 }
+.notif-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  .grow {
+    flex: 1 1 220px;
+  }
+}
+.cf {
+  display: flex;
+  align-items: center;
+}
