@@ -1,0 +1,59 @@
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+.section {
+  margin-bottom: 20px;
+}
+.full {
+  width: 100%;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+.error {
+  color: #dc3545;
+  margin: 4px 0 0;
+}
+.summary-col {
+  position: sticky;
+  top: 16px;
+}
+.summary-card .sum-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  span {
+    color: rgba(0, 0, 0, 0.6);
+  }
+  &.grand {
+    font-size: 18px;
+    padding-top: 10px;
+  }
+}
+.summary-card .submit {
+  margin-top: 16px;
+}
+.empty {
+  text-align: center;
+  padding: 40px 0;
+  mat-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+    color: rgba(0, 0, 0, 0.3);
+  }
+  p {
+    color: rgba(0, 0, 0, 0.6);
+    margin: 12px 0 20px;
+  }
+}

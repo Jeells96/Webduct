@@ -1,0 +1,145 @@
+<div class="wd-page">
+  <h1>Submit Order</h1>
+
+  @if (cartEmpty()) {
+    <mat-card>
+      <mat-card-content class="empty">
+        <mat-icon>info</mat-icon>
+        <p>Add products to your cart before submitting an order.</p>
+        <a mat-raised-button color="primary" routerLink="/main/catalog">Browse products</a>
+      </mat-card-content>
+    </mat-card>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="submit()" class="layout">
+      <div class="sections">
+        <!-- Job -->
+        <mat-card class="section">
+          <mat-card-header><mat-card-title>Job</mat-card-title></mat-card-header>
+          <mat-card-content>
+            <mat-form-field appearance="outline" class="full">
+              <mat-label>Job</mat-label>
+              <mat-select formControlName="jobId">
+                <mat-option [value]="''">— Select a job —</mat-option>
+                @for (j of jobs(); track j.id) {
+                  <mat-option [value]="j.id">{{ j.number }} — {{ j.name }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Details -->
+        <mat-card class="section">
+          <mat-card-header><mat-card-title>Order details</mat-card-title></mat-card-header>
+          <mat-card-content>
+            <div class="grid">
+              <mat-form-field appearance="outline">
+                <mat-label>PO number</mat-label>
+                <input matInput formControlName="poNumber" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Tag</mat-label>
+                <input matInput formControlName="tag" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Measured by</mat-label>
+                <mat-select formControlName="measuredById">
+                  <mat-option [value]="''">—</mat-option>
+                  @for (u of users(); track u.id) {
+                    <mat-option [value]="u.id">{{ u.name }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Ordered for</mat-label>
+                <mat-select formControlName="orderedForId">
+                  <mat-option [value]="''">—</mat-option>
+                  @for (u of users(); track u.id) {
+                    <mat-option [value]="u.id">{{ u.name }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>User group</mat-label>
+                <mat-select formControlName="userGroupId">
+                  <mat-option [value]="''">—</mat-option>
+                  @for (g of userGroups(); track g.id) {
+                    <mat-option [value]="g.id">{{ g.name }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Dates -->
+        <mat-card class="section">
+          <mat-card-header><mat-card-title>Dates</mat-card-title></mat-card-header>
+          <mat-card-content>
+            <div class="grid">
+              <mat-form-field appearance="outline">
+                <mat-label>Ordered date</mat-label>
+                <input matInput [matDatepicker]="op" formControlName="orderedDate" />
+                <mat-datepicker-toggle matIconSuffix [for]="op"></mat-datepicker-toggle>
+                <mat-datepicker #op></mat-datepicker>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Requested date</mat-label>
+                <input matInput [matDatepicker]="rp" formControlName="requestedDate" />
+                <mat-datepicker-toggle matIconSuffix [for]="rp"></mat-datepicker-toggle>
+                <mat-datepicker #rp></mat-datepicker>
+              </mat-form-field>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Shipping -->
+        <mat-card class="section">
+          <mat-card-header><mat-card-title>Shipping</mat-card-title></mat-card-header>
+          <mat-card-content>
+            <div class="grid">
+              <mat-form-field appearance="outline">
+                <mat-label>Shipping option</mat-label>
+                <mat-select formControlName="shippingOption">
+                  @for (s of shippingOptions(); track s.value) {
+                    <mat-option [value]="s.value">{{ s.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Delivery window start</mat-label>
+                <input matInput type="time" formControlName="deliveryWindowStart" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Delivery window end</mat-label>
+                <input matInput type="time" formControlName="deliveryWindowEnd" />
+              </mat-form-field>
+            </div>
+            @if (hasWindowError) {
+              <p class="error">Delivery window start must be before the end time.</p>
+            }
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Total summary sidebar -->
+      <div class="summary-col">
+        <mat-card class="summary-card">
+          <mat-card-header><mat-card-title>Order summary</mat-card-title></mat-card-header>
+          <mat-card-content>
+            @if (summary(); as s) {
+              <div class="sum-row"><span>Items</span><strong>{{ s.count }}</strong></div>
+              <div class="sum-row"><span>Weight</span><strong>{{ s.weight }} lb</strong></div>
+              <mat-divider></mat-divider>
+              <div class="sum-row grand"><span>Total</span><strong>{{ s.price | currency }}</strong></div>
+            }
+            <button mat-raised-button color="primary" class="full submit" type="submit" [disabled]="submitting()">
+              {{ submitting() ? 'Submitting…' : 'Submit order' }}
+            </button>
+            <a mat-button class="full" routerLink="/main/cart">Back to cart</a>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </form>
+  }
+</div>

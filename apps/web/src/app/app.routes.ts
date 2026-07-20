@@ -19,9 +19,9 @@ export const routes: Routes = [
     children: [
       {
         path: 'order',
-        loadComponent: () =>
-          import('./features/submit-order/submit-order.component').then(
-            (m) => m.SubmitOrderComponent,
+        loadChildren: () =>
+          import('./features/submit-order/submit-order.routes').then(
+            (m) => m.submitOrderRoutes,
           ),
       },
       {
