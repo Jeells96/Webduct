@@ -78,6 +78,16 @@
       </mat-card-content>
     </mat-card>
 
+    @if (asset3d()) {
+      <mat-card class="section">
+        <mat-card-header><mat-card-title>3D preview</mat-card-title></mat-card-header>
+        <mat-card-content>
+          <wd-three-viewer [asset]="asset3d()"></wd-three-viewer>
+          <p class="hint-3d">Drag to rotate · scroll to zoom</p>
+        </mat-card-content>
+      </mat-card>
+    }
+
     @if (isWithAttributes) {
       <mat-card class="section">
         <mat-card-header>

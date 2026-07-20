@@ -16,6 +16,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import type { Product3DAssetDto } from '@webduct/shared';
 import {
   CatalogDto,
   CategoryDto,
@@ -26,6 +27,7 @@ import {
 import { CatalogService } from '../../../core/services/catalog.service';
 import { ProductsService } from '../../../core/services/products.service';
 import { RichTextEditorComponent } from '../../../shared-ui/ckeditor/rich-text-editor.component';
+import { ThreeViewerComponent } from '../../../shared-ui/three-viewer/three-viewer.component';
 
 @Component({
   selector: 'app-product-form',
@@ -43,6 +45,7 @@ import { RichTextEditorComponent } from '../../../shared-ui/ckeditor/rich-text-e
     MatSlideToggleModule,
     MatButtonToggleModule,
     RichTextEditorComponent,
+    ThreeViewerComponent,
   ],
   templateUrl: './product-form.component.html',
   styleUrl: './product-form.component.scss',
@@ -58,6 +61,7 @@ export class ProductFormComponent implements OnInit {
   readonly catalogs = signal<CatalogDto[]>([]);
   readonly categories = signal<CategoryDto[]>([]);
   readonly saving = signal(false);
+  readonly asset3d = signal<Product3DAssetDto | null>(null);
   readonly editingId = signal<string | null>(null);
   readonly isEdit = computed(() => this.editingId() !== null);
 
@@ -105,6 +109,7 @@ export class ProductFormComponent implements OnInit {
     if (id && id !== 'new') {
       this.editingId.set(id);
       this.productsSvc.get(id).subscribe((p) => {
+        this.asset3d.set(p.asset3d ?? null);
         this.form.patchValue({
           sku: p.sku,
           name: p.name,
