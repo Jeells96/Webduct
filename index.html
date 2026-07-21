@@ -232,15 +232,36 @@ const SQ2RND_VARIANTS=[
 
 // ---------- Catalog tree ----------
 function leaf(id,label,thumb){ return {id,label,thumb,soon:true}; }
+// build a category whose children are scaffolded leaf tiles: arr = [[label,thumb],...]
+function kids(prefix, arr){ return arr.map(([label,thumb],i)=>({ id:prefix+'-'+i, label, thumb, soon:true })); }
+function cat(id,label,thumb,arr){ return { id, label, thumb, children:kids(id,arr) }; }
 const CATALOG={ id:'root', label:'Products', children:[
   leaf('gas','Gas','misc'),
   leaf('round3d','ROUND 3D','round'),
   leaf('rect3d','RECTANGULAR 3D','rect'),
-  leaf('workorder','Create Work Order','paper'),
-  leaf('architectural','Architectural','misc'),
+  cat('workorder','Create Work Order','paper',[
+    ['Create work order for','paper'],
+  ]),
+  cat('architectural','Architectural','misc',[
+    ['Sealants','misc'],['Fasteners','misc'],['WRB','misc'],['Bits & Tips','misc'],
+    ['Downspouts','misc'],['Flashing & Angles','misc'],['Shims','misc'],['Bug Screen','misc'],
+    ['Misc. Item Not Listed','misc'],['Attach Fab Sheets','paper'],
+  ]),
   leaf('documents','Documents','paper'),
-  leaf('toolcrib','Tool Crib','misc'),
-  leaf('rectangular','RECTANGULAR','rect'),
+  cat('toolcrib','Tool Crib','misc',[
+    ['Air Tools','misc'],['Architectural Inventory','misc'],['Bottle Jack','misc'],['Break/Lunch Items','misc'],
+    ['Carts & Material','misc'],['Fans','misc'],['Fall Protection','misc'],['Gang Boxes','misc'],
+    ['Genie Lifts','misc'],['Hand Tools','misc'],['Horizontal Bandsaws','misc'],['Jobsite Layout','misc'],
+    ['Ladders & Scaffolding','misc'],['Lasers','misc'],['Lighting','misc'],['Paint Equipment','misc'],
+    ['Pipe/Plumbing','misc'],['Powder Actuated','misc'],['Power Tools','misc'],['Rigging','misc'],
+    ['Testing Equipment','misc'],['Vacuum','misc'],['Vehicle Equipment','misc'],['Welders and Plasma','misc'],
+    ['Bottle Jack','misc'],['Green line & Dot laser kit','misc'],
+  ]),
+  cat('rectangular','RECTANGULAR','rect',[
+    ['Duct','rect'],['End Caps','cap'],['Elbows & Tees','elbow'],['Transitions','reducer'],
+    ["Take Off's",'tee'],['Offsets','elbow'],['Flex','flex'],['Troffers / Grill','rect'],
+    ['Screens','misc'],['Volume Dampers','damper'],['Patches','rect'],['Loose Duct','rect'],
+  ]),
   { id:'round', label:'ROUND', thumb:'round', children:[
     leaf('spiral','SPIRAL','spiral'),
     leaf('fabsnap','Fabricated and Snap','round'),
