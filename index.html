@@ -1,0 +1,680 @@
+<title>Webduct — Interactive Demo</title>
+<style>
+  :root{
+    --primary:#673ab7;--primary-dark:#512da8;--primary-050:#ede7f6;--accent:#ffc107;
+    --success:#2e7d32;--danger:#c62828;--info:#1565c0;
+    --ground:#f4f3f7;--surface:#fff;--panel:#dbeaf3;--line:#e4e1ea;
+    --ink:#201b29;--ink-2:#5b5566;--ink-3:#8b8496;
+    --shadow:0 1px 2px rgba(20,14,33,.08),0 2px 8px rgba(20,14,33,.06);
+    --radius:12px;--font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --primary:#b39ddb;--primary-dark:#9575cd;--primary-050:#2a2340;--accent:#ffca28;--success:#66bb6a;--danger:#ef9a9a;--info:#64b5f6;
+    --ground:#14111c;--surface:#1e1a29;--panel:#1b2733;--line:#2e2839;--ink:#ece9f2;--ink-2:#b3adc0;--ink-3:#837c92;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 2px 10px rgba(0,0,0,.35);}}
+  :root[data-theme="dark"]{--primary:#b39ddb;--primary-dark:#9575cd;--primary-050:#2a2340;--accent:#ffca28;--success:#66bb6a;--danger:#ef9a9a;--info:#64b5f6;--ground:#14111c;--surface:#1e1a29;--panel:#1b2733;--line:#2e2839;--ink:#ece9f2;--ink-2:#b3adc0;--ink-3:#837c92;--shadow:0 1px 2px rgba(0,0,0,.4),0 2px 10px rgba(0,0,0,.35);}
+  :root[data-theme="light"]{--primary:#673ab7;--primary-dark:#512da8;--primary-050:#ede7f6;--accent:#ffc107;--success:#2e7d32;--danger:#c62828;--info:#1565c0;--ground:#f4f3f7;--surface:#fff;--panel:#dbeaf3;--line:#e4e1ea;--ink:#201b29;--ink-2:#5b5566;--ink-3:#8b8496;--shadow:0 1px 2px rgba(20,14,33,.08),0 2px 8px rgba(20,14,33,.06);}
+
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--font);background:var(--ground);color:var(--ink);-webkit-font-smoothing:antialiased;}
+  button{font-family:inherit;cursor:pointer;}
+  svg{display:block;}
+  .icon{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+  .num{font-variant-numeric:tabular-nums;}
+  h1.page{font-size:26px;font-weight:700;margin:0 0 18px;letter-spacing:-.4px;}
+
+  .toolbar{height:58px;background:var(--primary);color:#fff;display:flex;align-items:center;padding:0 14px;gap:10px;position:sticky;top:0;z-index:20;}
+  .toolbar .brand{font-weight:700;font-size:19px;}
+  .toolbar .brand small{font-weight:400;font-size:11px;opacity:.85;display:block;margin-top:-3px;}
+  .toolbar .spacer{flex:1;}
+  .tbtn{background:transparent;border:0;color:#fff;display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:8px;font-size:14px;font-weight:500;}
+  .tbtn:hover{background:rgba(255,255,255,.14);}
+  .cart-badge{position:relative;}
+  .cart-badge b{position:absolute;top:-6px;right:-8px;background:var(--accent);color:#241c00;font-size:11px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:grid;place-items:center;padding:0 4px;}
+
+  .shell{display:grid;grid-template-columns:224px 1fr;min-height:calc(100vh - 58px);}
+  .sidenav{background:var(--surface);border-right:1px solid var(--line);padding:12px 8px;}
+  .navlink{display:flex;align-items:center;gap:14px;padding:11px 16px;border-radius:10px;color:var(--ink-2);font-weight:500;font-size:15px;border:0;background:transparent;width:100%;text-align:left;}
+  .navlink:hover{background:var(--primary-050);color:var(--ink);}
+  .navlink.active{background:var(--primary-050);color:var(--primary-dark);}
+  .content{padding:22px clamp(14px,3.5vw,36px);max-width:1180px;}
+
+  /* breadcrumb chips */
+  .crumbs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
+  .crumb{background:var(--primary-050);color:var(--primary-dark);border:0;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:600;display:inline-flex;gap:6px;align-items:center;}
+  .crumb.cur{background:var(--primary);color:#fff;}
+  .crumb:hover{filter:brightness(.97);}
+
+  /* tile grid */
+  .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;background:var(--panel);padding:16px;border-radius:14px;}
+  .tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;cursor:pointer;transition:.12s;min-height:150px;justify-content:center;}
+  .tile:hover{border-color:var(--primary);box-shadow:var(--shadow);transform:translateY(-2px);}
+  .tile .thumb{width:74px;height:74px;display:grid;place-items:center;color:var(--ink-3);}
+  .tile .thumb svg{width:66px;height:66px;}
+  .tile .lbl{font-size:13px;font-weight:600;line-height:1.25;}
+  .tile .soon{font-size:10px;color:var(--ink-3);border:1px solid var(--line);border-radius:6px;padding:1px 6px;}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);}
+  .card+.card{margin-top:16px;}
+  .card>h2{font-size:16px;font-weight:600;margin:0;padding:15px 20px 2px;display:flex;gap:8px;align-items:center;}
+  .card .sub{color:var(--ink-3);font-size:13px;padding:0 20px 4px;}
+  .card .body{padding:14px 20px 20px;}
+
+  table{width:100%;border-collapse:collapse;}
+  thead th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--ink-3);font-weight:600;padding:11px 12px;border-bottom:1px solid var(--line);}
+  tbody td{padding:11px 12px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:middle;}
+  tbody tr:last-child td{border-bottom:0;}
+  .r{text-align:right;}.c{text-align:center;}
+
+  .btn{border:0;border-radius:9px;padding:10px 18px;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px;justify-content:center;}
+  .btn.primary{background:var(--primary);color:#fff;}.btn.primary:hover{background:var(--primary-dark);}
+  .btn.ghost{background:transparent;color:var(--primary-dark);}.btn.ghost:hover{background:var(--primary-050);}
+  .btn.stroked{background:transparent;color:var(--ink);border:1px solid var(--line);}.btn.stroked:hover{border-color:var(--primary);color:var(--primary-dark);}
+  .btn.blue{background:var(--info);color:#fff;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  .iconbtn{background:transparent;border:0;border-radius:8px;padding:6px;color:var(--ink-2);display:inline-grid;place-items:center;}
+  .iconbtn:hover{background:var(--primary-050);color:var(--primary-dark);}
+  .iconbtn.red{color:#fff;background:var(--danger);}.iconbtn.red:hover{filter:brightness(1.1);}
+  .iconbtn.editblue{color:#fff;background:var(--info);}.iconbtn.editblue:hover{filter:brightness(1.1);}
+
+  .field{display:flex;flex-direction:column;gap:6px;}
+  .field label{font-size:12.5px;color:var(--ink-2);font-weight:600;}
+  .field label .req{color:var(--danger);}
+  .field input,.field select,.field textarea{font-family:inherit;font-size:15px;padding:10px 12px;border-radius:9px;border:1px solid var(--line);background:var(--ground);color:var(--ink);width:100%;}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:2px solid var(--primary);outline-offset:-1px;border-color:var(--primary);}
+  .field .err{color:var(--danger);font-size:12px;}
+  .field input:disabled,.field select:disabled{opacity:.6;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+  .switch{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--ink);}
+  .rte{min-height:80px;border:1px solid var(--line);border-radius:9px;background:var(--ground);padding:10px 12px;}
+  .section-title{font-size:15px;font-weight:700;margin:18px 0 10px;color:var(--ink);}
+
+  /* stepper */
+  .stepper{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+  .step{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;background:var(--primary-050);color:var(--ink-3);display:flex;gap:6px;align-items:center;}
+  .step.active{background:var(--primary);color:#fff;}
+  .step.done{background:var(--primary-dark);color:#fff;}
+
+  .banner{background:color-mix(in srgb,var(--success) 14%,var(--surface));border:1px solid color-mix(in srgb,var(--success) 40%,var(--line));border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:16px;color:var(--ink);}
+  .ribbon{background:color-mix(in srgb,var(--accent) 22%,var(--surface));border:1px solid color-mix(in srgb,var(--accent) 50%,var(--line));border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:16px;}
+
+  .qty{display:inline-flex;align-items:center;gap:4px;}.qty b{min-width:24px;text-align:center;}
+  .full{width:100%;}
+  .grouphead{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--panel);border-radius:10px 10px 0 0;font-weight:600;}
+  .grouphead .sub{color:var(--info);font-weight:700;}
+  .spec-line{color:var(--ink-3);font-size:12px;}
+  .list-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);}
+  .list-item:last-child{border-bottom:0;}
+
+  /* configurator */
+  .cfg-diagram{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;gap:24px;justify-content:center;flex-wrap:wrap;}
+  .cfg-preview{display:flex;justify-content:space-between;gap:16px;background:var(--primary-050);border-radius:10px;padding:14px 16px;margin-top:14px;flex-wrap:wrap;}
+  .cfg-preview div{display:flex;flex-direction:column;}.cfg-preview span{font-size:12px;color:var(--ink-2);}.cfg-preview b{font-size:18px;}
+  .desc-box{font-size:13px;color:var(--ink-2);white-space:pre-line;line-height:1.5;}
+
+  /* login */
+  .login-wrap{min-height:100vh;display:grid;place-items:center;background:radial-gradient(120% 120% at 50% 0%,var(--primary-050),var(--ground));padding:20px;}
+  .login-card{width:380px;max-width:100%;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;}
+  .login-card .top{height:5px;background:linear-gradient(90deg,var(--primary),var(--accent));}
+  .login-card .in{padding:30px 28px 26px;}
+  .login-card h1{margin:0 0 4px;font-size:26px;}.login-card p.tag{margin:0 0 22px;color:var(--ink-3);font-size:14px;}
+  .login-card .field{margin-bottom:14px;}.hint{margin-top:14px;color:var(--ink-3);font-size:12px;text-align:center;}
+
+  .confirm{max-width:560px;margin:20px auto;text-align:center;padding:38px 32px;}
+  .confirm .ok{width:70px;height:70px;margin:0 auto 10px;border-radius:50%;background:color-mix(in srgb,var(--success) 16%,transparent);display:grid;place-items:center;}
+  .confirm .ok svg{width:38px;height:38px;stroke:var(--success);}
+  .confirm h1{font-size:24px;margin:6px 0 8px;}.confirm .onum{font-size:18px;margin:0 0 14px;}.confirm .onum b{color:var(--primary-dark);}
+  .confirm .msg{color:var(--ink-2);margin:3px 0;font-size:14px;}
+  .confirm .totals{display:flex;justify-content:center;gap:34px;margin:22px 0;}
+  .confirm .totals div{display:flex;flex-direction:column;}.confirm .totals span{color:var(--ink-3);font-size:12px;}.confirm .totals b{font-size:19px;}
+
+  .scrim{position:fixed;inset:0;background:rgba(20,14,33,.5);display:grid;place-items:center;z-index:60;padding:16px;}
+  .modal{background:var(--surface);border-radius:14px;box-shadow:var(--shadow);width:520px;max-width:100%;max-height:90vh;overflow:auto;}
+  .modal .mhead{display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line);}
+  .modal .mhead h2{margin:0;font-size:17px;flex:1;}.modal .mbody{padding:18px 20px;}.modal .mfoot{display:flex;justify-content:flex-end;gap:10px;padding:14px 20px;border-top:1px solid var(--line);}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:#322b40;color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;opacity:0;transition:.25s;z-index:80;box-shadow:var(--shadow);}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .empty{text-align:center;padding:40px 0;color:var(--ink-2);}
+
+  @media (max-width:880px){
+    .shell{grid-template-columns:1fr;}
+    .sidenav{display:flex;gap:6px;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line);position:sticky;top:58px;z-index:15;}
+    .navlink{white-space:nowrap;}.grid2{grid-template-columns:1fr;}thead{display:none;}
+  }
+</style>
+
+<div id="app"></div>
+<div id="modal-root"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* Webduct interactive demo v3 — data-driven catalog, exact square-to-round
+   configurator, Review-Order cart, submit form, admin pricing. Single-file,
+   in-browser (localStorage). Catalog is DATA (CATALOG tree) so new families are
+   a data edit. Pricing constants live in PRICING and are editable in Admin. */
+
+const I={
+  menu:'<svg class="icon"><path d="M3 6h18M3 12h18M3 18h18"/></svg>',
+  cart:'<svg class="icon"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.6 12.4a1.5 1.5 0 0 0 1.5 1.2h8.3a1.5 1.5 0 0 0 1.5-1.2L22 7H6"/></svg>',
+  order:'<svg class="icon"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v3h6V3M9 12h6M9 16h4"/></svg>',
+  box:'<svg class="icon"><path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v8"/></svg>',
+  paper:'<svg class="icon"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M13 2v7h7"/></svg>',
+  gear:'<svg class="icon"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+  add:'<svg class="icon"><path d="M12 5v14M5 12h14"/></svg>',
+  del:'<svg class="icon"><path d="M18 6L6 18M6 6l12 12"/></svg>',
+  edit:'<svg class="icon"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>',
+  info:'<svg class="icon"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg>',
+  minus:'<svg class="icon"><path d="M5 12h14"/></svg>',
+  plus:'<svg class="icon"><path d="M12 5v14M5 12h14"/></svg>',
+  back:'<svg class="icon"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>',
+  fwd:'<svg class="icon"><path d="M5 12h14M12 5l7 7-7 7"/></svg>',
+  chevR:'<svg class="icon" style="width:16px;height:16px"><path d="M9 6l6 6-6 6"/></svg>',
+  check:'<svg class="icon"><path d="M20 6L9 17l-5-5"/></svg>',
+  logout:'<svg class="icon"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>',
+  drag:'<svg class="icon" style="width:18px;height:18px"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></svg>',
+};
+// generic 3D-ish thumbnail for tiles
+function thumbFor(kind){
+  const s='<svg viewBox="0 0 80 80" fill="none" stroke="#8b8496" stroke-width="1.5">';
+  if(kind==='round') return s+'<ellipse cx="40" cy="20" rx="20" ry="7"/><path d="M20 20v40M60 20v40"/><ellipse cx="40" cy="60" rx="20" ry="7"/></svg>';
+  if(kind==='elbow') return s+'<path d="M20 60V36a16 16 0 0 1 16-16h24"/><path d="M20 60h14M46 20v14"/></svg>';
+  if(kind==='sq2round') return s+'<path d="M16 60h48L52 26H28zM28 26a12 5 0 0 0 24 0"/></svg>';
+  if(kind==='reducer') return s+'<path d="M18 20h44l-12 40H30z"/></svg>';
+  if(kind==='rect') return s+'<path d="M18 30l14-10h30v30l-14 10H18zM18 30h30v30M48 30l14-10"/></svg>';
+  if(kind==='tee') return s+'<path d="M14 34h52M40 34v26M26 34a14 8 0 0 1 28 0"/></svg>';
+  if(kind==='wye') return s+'<path d="M20 60l20-40 20 40M32 44h16"/></svg>';
+  if(kind==='flex') return s+'<path d="M16 40q6-10 12 0t12 0 12 0 12 0"/></svg>';
+  if(kind==='damper') return s+'<circle cx="40" cy="40" r="22"/><path d="M24 30l32 20M24 50l32-20"/></svg>';
+  if(kind==='cap') return s+'<ellipse cx="40" cy="34" rx="22" ry="8"/><path d="M18 34v6a22 8 0 0 0 44 0v-6"/></svg>';
+  if(kind==='spiral') return s+'<path d="M18 30l44-8M18 40l44-8M18 50l44-8"/><path d="M18 28v24M62 20v24"/></svg>';
+  if(kind==='misc') return s+'<rect x="20" y="24" width="40" height="32" rx="3"/><path d="M20 34h40"/></svg>';
+  return s+'<rect x="22" y="26" width="36" height="28" rx="3"/></svg>';
+}
+</script>
+<script>
+// ---------- Dropdown option lists (editable data; only selected values were visible in screenshots) ----------
+const OPTS={
+  material:['Galvanized','Paint Grip','Stainless','Aluminum','Black Iron'],
+  spec:['+2 WG','+4 WG','+6 WG','+10 WG','-2 WG','-4 WG'],
+  gauge:['Standard','26 ga','24 ga','22 ga','20 ga','18 ga','16 ga'],
+  insulation:['None','1"','1.5"','2"'],
+  j1:['S&D','D&S','S&D**','TDC','TDF','Raw','Slip & Drive'],
+  j2:['SE Collar Round','Raw Round','Beaded Collar','Rolled Edge','Spin-In'],
+};
+const JOINT_DESC='S&D - Drive always short side\nD&S - Drive always long side\n\nS&D** - Connectors Supplied\nS&D - No Connectors Supplied';
+
+// A "part" = { dims:[{key,label}], diagram, shape } ; dropdowns are standard (material/spec/gauge/insulation/j1/j2)
+// Square-to-Round variants share the same field set (A Width, B Depth, C Diameter, D Length).
+function s2rPart(code, shape){
+  return { code, shape:'sq2round', variantCode:shape,
+    dims:[{key:'A',label:'Width'},{key:'B',label:'Depth'},{key:'C',label:'Diameter'},{key:'D',label:'Length'}],
+    dropdowns:['material','spec','gauge','insulation','j1','j2'] };
+}
+const SQ2RND_VARIANTS=[
+  ['SQ-Rnd CL both ways','CL'],
+  ['SQ-Rnd CL both ways (2)','CL2'],
+  ['SQ-Rnd CL FOT','FOT'],
+  ['SQ-Rnd CL FOT BD','FOTBD'],
+  ['SQ-Rnd Left & Top Offset','LTO'],
+  ['SQ-Rnd Left & Top Offset (2)','LTO2'],
+  ['SQ-Rnd Right & Top','RT'],
+  ['SQ-Rnd Right & Top (2)','RT2'],
+  ['SQ-Rnd CL FOB','FOB'],
+  ['SQ-Rnd CL FOB BD','FOBBD'],
+  ['SQ-Rnd Left & Bottom','LB'],
+  ['SQ-Rnd Left & Bottom (2)','LB2'],
+  ['SQ-Rnd Right & Bottom','RB'],
+  ['SQ-Rnd Right & Bottom (2)','RB2'],
+];
+
+// ---------- Catalog tree ----------
+function leaf(id,label,thumb){ return {id,label,thumb,soon:true}; }
+const CATALOG={ id:'root', label:'Products', children:[
+  leaf('gas','Gas','misc'),
+  leaf('round3d','ROUND 3D','round'),
+  leaf('rect3d','RECTANGULAR 3D','rect'),
+  leaf('workorder','Create Work Order','paper'),
+  leaf('architectural','Architectural','misc'),
+  leaf('documents','Documents','paper'),
+  leaf('toolcrib','Tool Crib','misc'),
+  leaf('rectangular','RECTANGULAR','rect'),
+  { id:'round', label:'ROUND', thumb:'round', children:[
+    leaf('spiral','SPIRAL','spiral'),
+    leaf('fabsnap','Fabricated and Snap','round'),
+    leaf('takeoffs','Take Offs - Round','round'),
+    leaf('conical','Round with Conical','reducer'),
+    leaf('rstraight','Round with Straight','round'),
+    leaf('shoetaps','Round with Shoe Taps','tee'),
+    leaf('rangled','Round with Angled','elbow'),
+    leaf('rectonround','Rectangular on Round','sq2round'),
+    leaf('wye','Wye Branches','wye'),
+    leaf('elbows','Elbows & Offsets','elbow'),
+    leaf('reducers','Reducers','reducer'),
+    { id:'sq2round', label:'SQUARE to ROUND', thumb:'sq2round',
+      children: SQ2RND_VARIANTS.map(([label,code])=>({ id:'s2r-'+code, label, thumb:'sq2round', part:s2rPart(code,code) })) },
+    leaf('flex','Flex','flex'),
+    leaf('coupler','Coupler','round'),
+    leaf('damper','Damper','damper'),
+    leaf('endcaps','Round End Caps','cap'),
+    leaf('drawband','Draw Band','round'),
+  ]},
+  leaf('roofflash','Roof Flashings','misc'),
+  leaf('welded16','16 ga Welded','rect'),
+  leaf('welded18','18 ga Welded','rect'),
+  leaf('pans','Pans','rect'),
+  leaf('hardware','Hardware & Fasteners','misc'),
+  leaf('hangers','Hangers & Supports','misc'),
+  leaf('accessories','Duct Accessories','misc'),
+  leaf('extension','Extension Cords','misc'),
+  leaf('safety','Safety Supplies','misc'),
+  leaf('delivery','Request Delivery','misc'),
+]};
+
+function nodeAtPath(path){
+  let node=CATALOG;
+  for(const id of (path||[])){
+    if(!node.children) return node;
+    const next=node.children.find(c=>c.id===id);
+    if(!next) return node;
+    node=next;
+  }
+  return node;
+}
+function crumbNodes(path){
+  const out=[{node:CATALOG,path:[]}]; let node=CATALOG; const acc=[];
+  for(const id of (path||[])){
+    if(!node.children) break;
+    const next=node.children.find(c=>c.id===id); if(!next)break;
+    node=next; acc.push(id); out.push({node, path:acc.slice()});
+  }
+  return out;
+}
+</script>
+<script>
+// ---------- Pricing (constants editable in Admin) ----------
+const DEFAULT_PRICING={
+  fabPerSqFt:14.5,
+  gaugeWtPerSqFt:{ 'Standard':1.156,'26 ga':0.906,'24 ga':1.156,'22 ga':1.406,'20 ga':1.656,'18 ga':2.156,'16 ga':2.656 },
+  materialMult:{ 'Galvanized':1,'Paint Grip':1.1,'Aluminum':0.9,'Stainless':2.4,'Black Iron':1.15 },
+  materialWtMult:{ 'Galvanized':1,'Paint Grip':1,'Aluminum':0.37,'Stainless':1.03,'Black Iron':1.02 },
+  insulAddPerSqFt:{ 'None':0,'1"':1.6,'1.5"':2.1,'2"':2.7 },
+  jointAdd:{ 'S&D':4,'D&S':4,'S&D**':7,'TDC':6,'TDF':7,'Raw':0,'Slip & Drive':4,'SE Collar Round':5,'Raw Round':0,'Beaded Collar':3,'Rolled Edge':2,'Spin-In':4 },
+  fittingComplexity:1.18,
+  offsetSurcharge:1.06,
+};
+function P(){ return store.data.pricing || DEFAULT_PRICING; }
+function areaSqFt(part, s){
+  const n=v=>Number(v)||0; const P2=(w,h)=>2*(n(w)+n(h));
+  if(part.shape==='sq2round'){
+    const A=n(s.A),B=n(s.B),C=n(s.C),D=n(s.D);
+    const perim=(P2(A,B)+Math.PI*C)/2;
+    return Math.max(perim*Math.max(D,1)/144,0.5);
+  }
+  // generic fallback using first up-to-3 numeric dims
+  const vals=(part.dims||[]).map(d=>n(s[d.key])).filter(x=>x>0);
+  const [a=12,b=12,c=12]=vals;
+  return Math.max((2*(a+b))*c/144,0.5);
+}
+function estimate(part, s){
+  const p=P(); const area=areaSqFt(part,s);
+  const mat=s.material||'Galvanized'; const g=s.gauge||'Standard';
+  const wt=area*(p.gaugeWtPerSqFt[g]||1.156)*(p.materialWtMult[mat]||1);
+  let price=area*p.fabPerSqFt*(p.materialMult[mat]||1);
+  price+=area*(p.insulAddPerSqFt[s.insulation]||0);
+  price+=(p.jointAdd[s.j1]||0)+(p.jointAdd[s.j2]||0);
+  if(part.shape==='sq2round') price*=p.fittingComplexity;
+  return { price:Math.round(price*100)/100, weight:Math.round(wt*10)/10, area:Math.round(area*10)/10 };
+}
+
+// ---------- Store ----------
+const KEY='webduct_demo_v3';
+const DEFAULTS={
+  jobs:[{id:'j1',number:'JOB-1001',name:'Riverside Medical Center',phase:'Level 3 Mechanical'},{id:'j2',number:'JOB-1002',name:'Downtown Office Tower',phase:'Core & Shell'}],
+  users:[{id:'u1',name:'Jaren Eells',phone:'(971) 978-7273'},{id:'u2',name:'Sam Foreman',phone:'(503) 555-0142'},{id:'u3',name:'Jordan Measure',phone:'(503) 555-0199'}],
+  crews:[{id:'c1',name:'Install Crew A'},{id:'c2',name:'Fabrication Crew'}],
+  userGroups:['HVAC','Sheet Metal','Service'],
+  shippingOptions:['Send to Job Site','Pick Up at Shop','Deliver to Shop','Will Call','Freight'],
+};
+const store={ data:null,
+  load(){ try{ this.data=JSON.parse(localStorage.getItem(KEY)); }catch(e){ this.data=null; } if(!this.data) this.reset(); if(!this.data.pricing) this.data.pricing=clone(DEFAULT_PRICING); return this.data; },
+  reset(){ this.data={ cart:[], orders:[], savedOrders:[], orderSeq:0, pricing:clone(DEFAULT_PRICING), ...clone(DEFAULTS) }; this.save(); },
+  save(){ localStorage.setItem(KEY, JSON.stringify(this.data)); },
+};
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+function uid(p){ return p+'-'+Math.random().toString(36).slice(2,9); }
+const money=n=>'$'+(Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// JSON for embedding inside a double-quoted on* attribute (escape the quotes)
+const jattr=x=>esc(JSON.stringify(x));
+let toastT; function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2400); }
+
+function cartTotals(){
+  let count=0,price=0,weight=0,fittings=0,other=0;
+  for(const it of store.data.cart){ count+=it.qty; const line=it.unitPrice*it.qty; price+=line; weight+=it.unitWeight*it.qty; if(it.group==='fittings')fittings+=line; else other+=line; }
+  return { count, price:r2(price), weight:r1(weight), fittings:r2(fittings), other:r2(other) };
+}
+const r2=n=>Math.round(n*100)/100, r1=n=>Math.round(n*10)/10;
+
+const state={ screen:'login', params:{} };
+function go(screen,params){ state.screen=screen; state.params=params||{}; window.scrollTo(0,0); render(); }
+</script>
+<script>
+// ---------- Modal ----------
+function openModal(html){ document.getElementById('modal-root').innerHTML='<div class="scrim" onclick="if(event.target===this)closeModal()">'+html+'</div>'; }
+function closeModal(){ document.getElementById('modal-root').innerHTML=''; }
+
+// ---------- Login ----------
+function loginScreen(){
+  return '<div class="login-wrap"><div class="login-card"><div class="top"></div><div class="in">'
+    +'<h1>Webduct</h1><p class="tag">Sign in to place an order</p>'
+    +'<div class="field" style="margin-bottom:14px"><label>Email</label><input value="jaren@arcticsheetmetal.test"></div>'
+    +'<div class="field" style="margin-bottom:14px"><label>Password</label><input type="password" value="password123"></div>'
+    +'<button class="btn primary full" onclick="go(\'catalog\',{path:[]})">Sign in</button>'
+    +'<p class="hint">Demo — no real account needed. Just click Sign in.</p></div></div></div>';
+}
+
+// ---------- Shell ----------
+function shell(active, inner){
+  const t=cartTotals();
+  return '<div class="toolbar">'
+    +'<span class="tbtn" style="padding:8px">'+I.menu+'</span>'
+    +'<span class="brand">Webduct<small>Evolved</small></span><span class="spacer"></span>'
+    +'<button class="tbtn" onclick="go(\'cart\')"><span class="cart-badge">'+I.cart+(t.count?'<b class="num">'+t.count+'</b>':'')+'</span> Cart</button>'
+    +'<button class="tbtn" onclick="go(\'login\')" title="Sign out" style="padding:8px">'+I.logout+'</button></div>'
+    +'<div class="shell"><nav class="sidenav">'
+    +navlink('catalog','order',I.order,'Order')
+    +navlink('cart','cart',I.cart,'Cart')
+    +navlink('orders','orders',I.paper,'Orders')
+    +navlink('admin','admin',I.gear,'Admin')
+    +'</nav><main class="content">'+inner+'</main></div>';
+}
+function navlink(screen,key,icon,label){ return '<button class="navlink '+(state.screen===screen||(screen==='catalog'&&['catalog','configure'].includes(state.screen))?'active':'')+'" onclick="go(\''+screen+'\','+(screen==='catalog'?'{path:[]}':'{}')+')">'+icon+' '+label+'</button>'; }
+</script>
+<script>
+// ---------- Catalog (tile drill-down) ----------
+function catalogScreen(){
+  const path=state.params.path||[];
+  const node=nodeAtPath(path);
+  // breadcrumbs
+  const crumbs=crumbNodes(path).map((c,i,arr)=>{
+    const cur=i===arr.length-1;
+    return '<button class="crumb '+(cur?'cur':'')+'" onclick="go(\'catalog\',{path:'+jattr(c.path)+'})">'+(i>0?I.chevR:'')+esc(c.node.label)+'</button>';
+  }).join('');
+  let body;
+  if(node.children){
+    body='<div class="tiles">'+node.children.map(ch=>{
+      const isPart=!!ch.part; const target=ch.children||ch.part;
+      const onclick = ch.part ? 'go(\'configure\',{path:'+jattr(path.concat(ch.id))+'})'
+                    : ch.children ? 'go(\'catalog\',{path:'+jattr(path.concat(ch.id))+'})'
+                    : 'toast(\''+esc(ch.label)+' — coming soon in this demo\')';
+      return '<button class="tile" onclick="'+onclick+'">'
+        +'<span class="thumb">'+thumbFor(ch.thumb||'misc')+'</span>'
+        +'<span class="lbl">'+esc(ch.label)+'</span>'
+        +(ch.soon?'<span class="soon">catalog</span>':'')+'</button>';
+    }).join('')+'</div>';
+  } else {
+    body='<div class="card"><div class="body empty">This category is scaffolded in the demo. The full flow is built for <b>ROUND → Square to Round</b>.</div></div>';
+  }
+  const ribbon = path.length===0 ? '<p class="ribbon">Drill in: <b>ROUND → SQUARE to ROUND</b> is fully built — pick a variant to open its configurator. Other tiles are scaffolded.</p>' : '';
+  return shell('order','<h1 class="page">Products</h1>'+'<div class="crumbs">'+crumbs+'</div>'+ribbon+body);
+}
+</script>
+<script>
+// ---------- Configurator ----------
+function configureScreen(){
+  const path=state.params.path||[];
+  const node=nodeAtPath(path);
+  if(!node.part) return shell('order','<div class="empty">Part not found.</div>');
+  const part=node.part;
+  // working spec
+  if(!window.__spec || window.__specPath!==path.join('/')){
+    window.__spec={ qty:1, material:OPTS.material[0], spec:OPTS.spec[0], gauge:OPTS.gauge[0], insulation:OPTS.insulation[0], j1:OPTS.j1[0], j2:OPTS.j2[0], tag:'', autoJoints:true };
+    part.dims.forEach(d=>window.__spec[d.key]='');
+    window.__specPath=path.join('/');
+  }
+  const s=window.__spec;
+  const crumbs=crumbNodes(path).map((c,i,arr)=>{
+    const cur=i===arr.length-1;
+    return '<button class="crumb '+(cur?'cur':'')+'" onclick="go(\'catalog\',{path:'+jattr(c.path)+'})">'+(i>0?I.chevR:'')+esc(c.node.label)+'</button>';
+  }).join('');
+  const dimFields=part.dims.map(d=>'<div class="field"><label>('+d.key+') '+esc(d.label)+' <span style="color:var(--ink-3);font-weight:400">[Inches]</span></label>'
+      +'<input type="number" min="0" step="0.25" value="'+esc(s[d.key])+'" placeholder="'+esc(d.label)+'" oninput="cfgDim(\''+d.key+'\',this.value)"></div>').join('');
+  const dd=(id,label,opts)=>'<div class="field"><label>'+label+'</label><select onchange="cfgSet(\''+id+'\',this.value)" '+((id==='j1'||id==='j2')&&s.autoJoints?'disabled':'')+'>'+opts.map(o=>'<option '+(String(s[id])===String(o)?'selected':'')+'>'+esc(o)+'</option>').join('')+'</select></div>';
+  const est=estimate(part,s);
+  const inner='<div class="crumbs">'+crumbs+'</div>'
+    +'<h1 class="page">Product ['+esc(node.label)+']</h1>'
+    +'<div class="card"><div class="body"><div class="cfg-diagram">'+diagram(part,'A')+diagram(part,'B')+'</div></div></div>'
+    +'<div class="card"><h2>Dimensions</h2><div class="body">'
+      +'<div class="field" style="max-width:160px;margin-bottom:12px"><label>Quantity</label><input type="number" min="1" value="'+s.qty+'" oninput="cfgSet(\'qty\',Math.max(1,Number(this.value)||1))"></div>'
+      +'<div class="grid">'+dimFields+'</div></div></div>'
+    +'<div class="card"><h2>Specification</h2><div class="body"><div class="grid">'
+      +dd('material','Material',OPTS.material)+dd('spec','Specification',OPTS.spec)+dd('gauge','Gauge',OPTS.gauge)+dd('insulation','Insulation',OPTS.insulation)
+      +dd('j1','Joint (J1)',OPTS.j1)+dd('j2','Joint (J2)',OPTS.j2)
+      +'<div class="field"><label>Tag</label><input value="'+esc(s.tag)+'" placeholder="Tag" oninput="cfgSet(\'tag\',this.value)"></div>'
+      +'</div>'
+      +'<label class="switch" style="margin-top:14px"><input type="checkbox" '+(s.autoJoints?'checked':'')+' onchange="cfgAuto(this.checked)"> Automatically Select Recommended Joints</label>'
+      +'</div></div>'
+    +'<div class="card"><h2>Description</h2><div class="body"><div class="desc-box">'+esc(JOINT_DESC)+'</div></div></div>'
+    +'<div class="cfg-preview"><div><span>Unit price</span><b class="num" id="cfg-price">'+money(est.price)+'</b></div>'
+      +'<div><span>Unit weight</span><b class="num" id="cfg-weight">'+est.weight+' lb</b></div>'
+      +'<div><span>Sheet area</span><b class="num" id="cfg-area">'+est.area+' ft²</b></div></div>'
+    +'<div class="row" style="justify-content:flex-end;margin-top:16px">'
+      +'<button class="btn ghost" onclick="go(\'catalog\',{path:'+jattr(path.slice(0,-1))+'})">Back</button>'
+      +'<button class="btn primary" onclick="cfgAdd()">'+I.add+' Add to cart</button></div>';
+  return shell('order',inner);
+}
+function cfgDim(k,v){ window.__spec[k]=v===''?'':Number(v); cfgRefresh(); }
+function cfgSet(k,v){ window.__spec[k]=v; cfgRefresh(); }
+function cfgAuto(on){ window.__spec.autoJoints=on; if(on){ window.__spec.j1=OPTS.j1[0]; window.__spec.j2=OPTS.j2[0]; } render(); }
+function cfgRefresh(){
+  const node=nodeAtPath(state.params.path||[]); if(!node.part)return;
+  const est=estimate(node.part,window.__spec);
+  const set=(id,v)=>{const el=document.getElementById(id); if(el)el.textContent=v;};
+  set('cfg-price',money(est.price)); set('cfg-weight',est.weight+' lb'); set('cfg-area',est.area+' ft²');
+}
+function cfgAdd(){
+  const path=state.params.path||[]; const node=nodeAtPath(path); const part=node.part; const s=clone(window.__spec);
+  const est=estimate(part,s);
+  const fields=part.dims.filter(d=>s[d.key]!==''&&s[d.key]!=null).map(d=>'('+d.key+') '+d.label+': '+s[d.key]);
+  store.data.cart.push({ id:uid('ci'), group:'fittings', name:node.label, spec:s, part:{shape:part.shape,dims:part.dims},
+    fieldsSummary:fields.join(', '), qty:s.qty||1, unitPrice:est.price, unitWeight:est.weight });
+  store.save(); window.__spec=null; toast(node.label+' added to cart'); go('cart');
+}
+// simple dimensioned trapezoid diagram (evokes the real square-to-round drawings)
+function diagram(part,view){
+  if(part.shape!=='sq2round'){ return '<svg width="150" height="130"></svg>'; }
+  return '<div style="text-align:center"><svg width="160" height="140" viewBox="0 0 160 140" fill="none" stroke="var(--ink-2)" stroke-width="1.4">'
+    +'<rect x="55" y="16" width="50" height="12" fill="var(--line)"/>'         // top collar
+    +'<line x1="55" y1="28" x2="30" y2="112"/><line x1="105" y1="28" x2="130" y2="112"/>' // sides
+    +'<line x1="30" y1="112" x2="130" y2="112"/>'                               // bottom
+    +'<line x1="66" y1="28" x2="80" y2="112" stroke-dasharray="3 3"/><line x1="94" y1="28" x2="80" y2="112" stroke-dasharray="3 3"/>'
+    +'<text x="80" y="70" text-anchor="middle" font-size="11" fill="var(--ink-3)" stroke="none">'+esc(part.variantCode||'')+'</text>'
+    +'<text x="80" y="12" text-anchor="middle" font-size="10" fill="var(--danger)" stroke="none">C</text>'
+    +'<text x="140" y="72" font-size="10" fill="var(--danger)" stroke="none">D</text>'
+    +'<text x="24" y="124" font-size="10" fill="var(--danger)" stroke="none">J1</text>'
+    +'<text x="80" y="128" text-anchor="middle" font-size="10" fill="var(--ink-3)" stroke="none">'+(view==='A'?'A':'B')+'</text>'
+    +'</svg><div style="font-size:11px;color:var(--ink-3);margin-top:2px">'+(view==='A'?'Left Side View':'CL other way')+'</div></div>';
+}
+</script>
+<script>
+// ---------- Cart / Review Order ----------
+function cartScreen(){
+  const t=cartTotals();
+  const loaded = state.params.loadedName ? '<div class="banner">📄 Your saved order <b>'+esc(state.params.loadedName)+'</b> was loaded.</div>':'';
+  if(!store.data.cart.length){
+    return shell('cart',reviewStepper('review')+loaded+'<div class="card"><div class="body empty">'+I.cart+'<p style="margin:12px 0 18px">Your cart is empty.</p><button class="btn primary" onclick="go(\'catalog\',{path:[]})">Continue Shopping</button></div></div>');
+  }
+  const groups=[['fittings','HVAC Fittings',t.fittings],['other','Other Items',t.other]];
+  const groupHtml=groups.map(([g,label,sub])=>{
+    const items=store.data.cart.filter(x=>x.group===g);
+    if(!items.length) return '';
+    const rows=items.map((it,idx)=>'<tr>'
+      +'<td class="c"><span class="num" style="display:inline-grid;place-items:center;width:24px;height:24px;background:var(--primary-050);color:var(--primary-dark);border-radius:6px;font-size:12px;font-weight:700">'+(store.data.cart.indexOf(it)+1)+'</span></td>'
+      +'<td class="c">'+it.qty+'</td>'
+      +'<td>'+esc(it.name)+(it.fieldsSummary?'<div class="spec-line">'+esc(it.fieldsSummary)+'</div>':'')+'</td>'
+      +'<td class="r num">'+money(it.unitPrice*it.qty)+'</td>'
+      +'<td class="r"><button class="iconbtn" title="Info" onclick="cartInfo(\''+it.id+'\')">'+I.info+'</button>'
+        +'<button class="iconbtn red" title="Remove" onclick="cartRemove(\''+it.id+'\')">'+I.del+'</button>'
+        +'<button class="iconbtn editblue" title="Edit" onclick="cartEdit(\''+it.id+'\')">'+I.edit+'</button></td></tr>').join('');
+    return '<div class="card"><div class="grouphead"><span>'+label+'</span><span class="sub">Subtotal (not including taxes): '+money(sub)+'</span></div>'
+      +'<table><thead><tr><th class="c">Item #</th><th class="c">Qty</th><th>Name</th><th class="r">Total</th><th class="r">Actions</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  }).join('');
+  return shell('cart',reviewStepper('review')+loaded+'<h1 class="page">Active Order Items</h1>'+groupHtml
+    +'<div class="card"><div class="body" style="text-align:right">'
+      +'<div style="margin-bottom:4px">Total (not including taxes): <b class="num" style="color:var(--info);font-size:18px">'+money(t.price)+'</b></div>'
+      +'<div class="spec-line">Total Installable Weight: '+t.weight+' lbs</div></div></div>'
+    +'<div class="row" style="justify-content:center;gap:10px;margin-top:16px">'
+      +'<button class="btn stroked" onclick="cartClear()">Clear Cart</button>'
+      +'<button class="btn stroked" onclick="go(\'catalog\',{path:[]})">Continue Shopping</button>'
+      +'<button class="btn stroked" onclick="saveOrderPrompt()">Save Order</button>'
+      +'<button class="btn blue" onclick="go(\'submit\')">Checkout '+I.fwd+'</button></div>');
+}
+function reviewStepper(cur){
+  const step=(k,label)=>'<div class="step '+(cur===k?'active':(stepDone(cur,k)?'done':''))+'">'+label+'</div>';
+  return '<div class="stepper">'+step('review','Review Order')+step('submit','Submit Order')+step('complete','Order Complete')+'</div>';
+}
+function stepDone(cur,k){ const order=['review','submit','complete']; return order.indexOf(k)<order.indexOf(cur); }
+function cartRemove(id){ store.data.cart=store.data.cart.filter(x=>x.id!==id); store.save(); render(); }
+function cartClear(){ store.data.cart=[]; store.save(); toast('Cart cleared'); render(); }
+function cartInfo(id){ const it=store.data.cart.find(x=>x.id===id); if(!it)return; openModal('<div class="modal"><div class="mhead"><h2>'+esc(it.name)+'</h2><button class="iconbtn" onclick="closeModal()">'+I.del+'</button></div><div class="mbody"><div class="spec-line" style="font-size:13px;line-height:1.7">'+esc(it.fieldsSummary||'No configuration')+'<br>Material: '+esc(it.spec&&it.spec.material||'-')+' · Gauge: '+esc(it.spec&&it.spec.gauge||'-')+'<br>Joints: '+esc(it.spec&&it.spec.j1||'-')+' / '+esc(it.spec&&it.spec.j2||'-')+'<br>Unit weight: '+it.unitWeight+' lb</div></div><div class="mfoot"><button class="btn primary" onclick="closeModal()">Close</button></div></div>'); }
+function cartEdit(id){ const it=store.data.cart.find(x=>x.id===id); if(!it){return;} openModal('<div class="modal"><div class="mhead"><h2>Edit quantity</h2></div><div class="mbody"><div class="field"><label>Quantity — '+esc(it.name)+'</label><input id="edit-qty" type="number" min="1" value="'+it.qty+'"></div></div><div class="mfoot"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="cartEditSave(\''+id+'\')">Save</button></div></div>'); }
+function cartEditSave(id){ const it=store.data.cart.find(x=>x.id===id); const q=Math.max(1,Number(document.getElementById('edit-qty').value)||1); if(it)it.qty=q; store.save(); closeModal(); render(); }
+function saveOrderPrompt(){ openModal('<div class="modal"><div class="mhead"><h2>Save order</h2></div><div class="mbody"><div class="field"><label>Order name</label><input id="save-name" placeholder="e.g. Westside" value="Westside"></div></div><div class="mfoot"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="saveOrderDo()">Save</button></div></div>'); }
+function saveOrderDo(){ const name=document.getElementById('save-name').value||'Untitled'; store.data.savedOrders=store.data.savedOrders.filter(o=>o.name!==name); store.data.savedOrders.push({name, cart:clone(store.data.cart), savedAt:new Date().toISOString()}); store.save(); closeModal(); toast('Order saved as “'+name+'”'); }
+</script>
+<script>
+// ---------- Submit Order ----------
+function submitScreen(){
+  const t=cartTotals();
+  if(!store.data.cart.length){ return shell('cart',reviewStepper('submit')+'<div class="card"><div class="body empty">Your cart is empty.<br><button class="btn primary" style="margin-top:12px" onclick="go(\'catalog\',{path:[]})">Continue Shopping</button></div></div>'); }
+  const userOpts=store.data.users.map(u=>'<option value="'+u.id+'">'+esc(u.name)+(u.phone?' '+esc(u.phone):'')+'</option>').join('');
+  const groupOpts=store.data.userGroups.map(g=>'<option>'+esc(g)+'</option>').join('');
+  const jobOpts='<option value="">Select…</option>'+store.data.jobs.map(j=>'<option value="'+j.id+'">'+esc(j.number)+' — '+esc(j.name)+'</option>').join('');
+  const shipOpts=store.data.shippingOptions.map(o=>'<option>'+esc(o)+'</option>').join('');
+  const today=new Date().toLocaleDateString('en-US');
+  const inner=reviewStepper('submit')
+    +'<div class="card"><h2>Details</h2><div class="body"><div class="grid">'
+      +'<div class="field"><label>Ordered For <span class="req">*</span></label><select id="s-orderedfor">'+userOpts+'</select></div>'
+      +'<div class="field"><label>Measured By <span class="req">*</span></label><select id="s-measured"><option value="">Measured By</option>'+userOpts+'</select></div>'
+      +'<div class="field"><label>Tag</label><input id="s-tag" placeholder="Tag"></div>'
+      +'<div class="field"><label>PO Number</label><input id="s-po" placeholder="PO Number"></div>'
+      +'<div class="field"><label>User Group <span class="req">*</span></label><select id="s-group">'+groupOpts+'</select></div>'
+    +'</div></div></div>'
+    +'<div class="card"><h2>Dates</h2><div class="body"><div class="grid2">'
+      +'<div class="field"><label>Ordered Date</label><input value="'+today+'" disabled></div>'
+      +'<div class="field"><label>Requested Date <span class="req">*</span></label><input id="s-requested" type="date"></div>'
+    +'</div></div></div>'
+    +'<div class="card"><h2>Shipping</h2><div class="body"><div class="grid">'
+      +'<div class="field"><label>Shipping Option <span class="req">*</span></label><select id="s-ship">'+shipOpts+'</select></div>'
+      +'<div class="field"><label>Delivery/Pick up — Start Time</label><input id="s-start" type="time" oninput="checkWindow()"></div>'
+      +'<div class="field"><label>End Time</label><input id="s-end" type="time" oninput="checkWindow()"></div>'
+    +'</div><div class="field err" id="window-err" style="display:none;margin-top:6px">Delivery window start must be before the end time.</div></div></div>'
+    +'<div class="card"><h2>Job Details</h2><div class="body"><div class="grid2">'
+      +'<div class="field"><label>Job <span class="req">*</span></label><select id="s-job">'+jobOpts+'</select></div>'
+      +'<div class="field"><label>Phase</label><input id="s-phase" placeholder="Phase"></div>'
+    +'</div></div></div>'
+    +'<div class="card"><h2>Special Instructions</h2><div class="body"><textarea id="s-instr" rows="3" placeholder="Special Instructions"></textarea></div></div>'
+    +'<div class="card"><h2>Attachments (0)</h2><div class="body"><div class="empty" style="padding:16px">No Attachments Found</div><button class="btn stroked" onclick="toast(\'Attach files — demo\')">'+I.add+' Add attachment</button></div></div>'
+    +notificationsCard()
+    +'<div class="card"><h2>Order Summary</h2><div class="body row" style="justify-content:space-between">'
+      +'<div><div class="spec-line">Items</div><b style="font-size:20px">'+t.count+'</b></div>'
+      +'<div style="text-align:right"><div class="spec-line">Total Installable Weight</div><b>'+t.weight+' lb</b><div style="margin-top:6px" class="spec-line">Total</div><b style="font-size:20px">'+money(t.price)+' USD</b></div>'
+    +'</div></div>'
+    +'<div class="row" style="justify-content:space-between;margin-top:16px">'
+      +'<button class="btn stroked" onclick="go(\'cart\')">'+I.back+' Back to Cart</button>'
+      +'<button class="btn primary" onclick="submitOrder()">Submit</button></div>';
+  return shell('cart',inner);
+}
+function notificationsCard(){
+  if(!window.__recips) window.__recips=[];
+  const userOpts='<option value="">Select User</option>'+store.data.users.map(u=>'<option value="'+u.id+'">'+esc(u.name)+'</option>').join('');
+  const crewOpts='<option value="">Select Crew</option>'+store.data.crews.map(c=>'<option value="'+c.id+'">'+esc(c.name)+'</option>').join('');
+  const recips=window.__recips.map((r,i)=>'<div class="list-item"><span style="flex:1">'+esc(r.label)+'</span><button class="iconbtn red" onclick="rmRecip('+i+')">'+I.del+'</button></div>').join('')||'<div class="empty" style="padding:16px">No recipients yet.</div>';
+  return '<div class="card"><h2>'+I.cart.replace('cart','')+'Notifications</h2><div class="sub">Select users, crews, or type an email address to send order notifications.</div><div class="body"><div class="grid2">'
+    +'<div><div class="field" style="margin-bottom:10px"><label>User</label><select onchange="addRecip(\'user\',this)">'+userOpts+'</select></div>'
+    +'<div class="field" style="margin-bottom:10px"><label>Email</label><input placeholder="Add Email Address" onkeydown="if(event.key===\'Enter\'){addRecip(\'email\',this);}"></div>'
+    +'<div class="field"><label>Crew</label><select onchange="addRecip(\'crew\',this)">'+crewOpts+'</select></div></div>'
+    +'<div class="field"><label>Recipients ('+window.__recips.length+')</label><div class="card" style="box-shadow:none;min-height:120px;padding:8px 12px">'+recips+'</div></div>'
+    +'</div></div></div>';
+}
+function addRecip(type,el){
+  if(type==='email'){ const v=el.value.trim(); if(!v)return; const key='email:'+v.toLowerCase(); if(window.__recips.some(r=>r.key===key)){toast('Recipient already added');return;} window.__recips.push({type,key,label:'✉ '+v}); el.value=''; }
+  else { const id=el.value; if(!id)return; const list=type==='user'?store.data.users:store.data.crews; const item=list.find(x=>x.id===id); const key=type+':'+id; if(window.__recips.some(r=>r.key===key)){toast('Recipient already added');el.selectedIndex=0;return;} window.__recips.push({type,key,label:(type==='user'?'👤 ':'👥 ')+item.name}); el.selectedIndex=0; }
+  render();
+}
+function rmRecip(i){ window.__recips.splice(i,1); render(); }
+function checkWindow(){ const a=val('s-start'),b=val('s-end'); const e=document.getElementById('window-err'); if(e)e.style.display=(a&&b&&a>=b)?'block':'none'; }
+function val(id){ const el=document.getElementById(id); return el?el.value:''; }
+function submitOrder(){
+  const missing=[];
+  if(!val('s-orderedfor'))missing.push('Ordered For');
+  if(!val('s-group'))missing.push('User Group');
+  if(!val('s-requested'))missing.push('Requested Date');
+  if(!val('s-ship'))missing.push('Shipping Option');
+  if(!val('s-job'))missing.push('Job');
+  const a=val('s-start'),b=val('s-end'); if(a&&b&&a>=b){ toast('Delivery window start must be before end.'); checkWindow(); return; }
+  if(missing.length){ toast('Required: '+missing.join(', ')); return; }
+  const t=cartTotals();
+  store.data.orderSeq++;
+  const number='WD-'+String(store.data.orderSeq).padStart(5,'0');
+  const shipVal=val('s-ship');
+  const order={ id:uid('ord'), number, createdAt:new Date().toISOString(), summary:{count:t.count,price:t.price,weight:t.weight},
+    lines:clone(store.data.cart), recipients:clone(window.__recips||[]),
+    pricingMessage:'Estimated total '+money(t.price)+' for '+t.count+' item(s).',
+    deliveryMessage: shipVal.indexOf('Pick')>=0?'Ready for pick up once fabricated.':(val('s-requested')?'Requested delivery on or around '+val('s-requested')+'.':'Delivery scheduled after fabrication.') };
+  store.data.orders.push(order); store.data.cart=[]; window.__recips=[]; store.save();
+  go('complete',{id:order.id});
+}
+</script>
+<script>
+// ---------- Complete + Orders + Admin ----------
+function completeScreen(){
+  const o=store.data.orders.find(x=>x.id===state.params.id);
+  if(!o) return shell('cart','<div class="empty">Order not found.</div>');
+  return shell('cart',reviewStepper('complete')+'<div class="card confirm">'
+    +'<div class="ok">'+I.check+'</div><h1>Thank you for placing your order</h1>'
+    +'<p class="onum">Your order number is <b>'+esc(o.number)+'</b></p>'
+    +'<p class="msg">'+esc(o.pricingMessage)+'</p><p class="msg">'+esc(o.deliveryMessage)+'</p>'
+    +'<div class="totals"><div><span>Items</span><b class="num">'+o.summary.count+'</b></div>'
+      +'<div><span>Weight</span><b class="num">'+o.summary.weight+' lb</b></div>'
+      +'<div><span>Total</span><b class="num">'+money(o.summary.price)+'</b></div></div>'
+    +'<div class="row" style="justify-content:center"><button class="btn ghost" onclick="go(\'orders\')">View orders</button>'
+    +'<button class="btn primary" onclick="go(\'catalog\',{path:[]})">'+I.add+' Start a new order</button></div></div>');
+}
+function ordersScreen(){
+  const saved=store.data.savedOrders.length?'<div class="card"><h2>Saved orders</h2><div class="body">'+store.data.savedOrders.slice().reverse().map(o=>'<div class="list-item"><span style="flex:1">'+esc(o.name)+' <span class="spec-line">('+o.cart.length+' items)</span></span><button class="btn ghost" onclick="loadSaved(\''+esc(o.name)+'\')">Load</button></div>').join('')+'</div></div>':'';
+  if(!store.data.orders.length&&!saved){ return shell('orders','<h1 class="page">Orders</h1><div class="card"><div class="body empty">'+I.paper+'<p style="margin:12px 0 18px">No orders yet.</p><button class="btn primary" onclick="go(\'catalog\',{path:[]})">Start an order</button></div></div>'); }
+  const rows=store.data.orders.slice().reverse().map(o=>'<tr><td><b>'+esc(o.number)+'</b></td><td>'+new Date(o.createdAt).toLocaleDateString('en-US')+'</td><td>'+o.summary.count+'</td><td class="r num">'+money(o.summary.price)+'</td><td class="r"><button class="btn ghost" onclick="go(\'complete\',{id:\''+o.id+'\'})">View</button></td></tr>').join('');
+  const submitted=store.data.orders.length?'<h1 class="page">Orders</h1><div class="card"><table><thead><tr><th>Order</th><th>Date</th><th>Items</th><th class="r">Total</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>':'<h1 class="page">Orders</h1>';
+  return shell('orders',submitted+saved);
+}
+function loadSaved(name){ const o=store.data.savedOrders.find(x=>x.name===name); if(!o)return; store.data.cart=clone(o.cart); store.save(); go('cart',{loadedName:name}); }
+
+function adminScreen(){
+  const p=P();
+  const field=(path,label,val)=>'<div class="field"><label>'+esc(label)+'</label><input type="number" step="0.01" value="'+val+'" oninput="adminSet(\''+path+'\',this.value)"></div>';
+  const mapFields=(obj,prefix,title)=>'<div class="section-title">'+title+'</div><div class="grid">'+Object.keys(obj).map(k=>field(prefix+'.'+k,k,obj[k])).join('')+'</div>';
+  return shell('admin','<h1 class="page">Admin — Pricing settings</h1>'
+    +'<p class="ribbon">These constants drive the approximate price &amp; weight calculations. Edit and they apply immediately. (The real Webduct computes pricing on its server; send a HAR to match exact numbers.)</p>'
+    +'<div class="card"><div class="body">'
+      +'<div class="grid">'+field('fabPerSqFt','Fabrication $/ft²',p.fabPerSqFt)+field('fittingComplexity','Fitting complexity ×',p.fittingComplexity)+field('offsetSurcharge','Offset surcharge ×',p.offsetSurcharge)+'</div>'
+      +mapFields(p.gaugeWtPerSqFt,'gaugeWtPerSqFt','Gauge weight (lb/ft²)')
+      +mapFields(p.materialMult,'materialMult','Material price ×')
+      +mapFields(p.insulAddPerSqFt,'insulAddPerSqFt','Insulation add $/ft²')
+      +'<div class="row" style="margin-top:18px"><button class="btn stroked" onclick="adminReset()">Reset to defaults</button></div>'
+    +'</div></div>');
+}
+function adminSet(path,v){ const parts=path.split('.'); let o=store.data.pricing; for(let i=0;i<parts.length-1;i++)o=o[parts[i]]; o[parts[parts.length-1]]=Number(v)||0; store.save(); }
+function adminReset(){ store.data.pricing=clone(DEFAULT_PRICING); store.save(); toast('Pricing reset to defaults'); render(); }
+
+// ---------- Render / boot ----------
+function render(){
+  const map={ login:loginScreen, catalog:catalogScreen, configure:configureScreen, cart:cartScreen, submit:submitScreen, complete:completeScreen, orders:ordersScreen, admin:adminScreen };
+  document.getElementById('app').innerHTML=(map[state.screen]||loginScreen)();
+}
+store.load();
+render();
+</script>
