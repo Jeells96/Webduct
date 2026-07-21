@@ -1,0 +1,407 @@
+<title>Webduct — Interactive Demo</title>
+<style>
+  :root {
+    --primary: #673ab7;
+    --primary-dark: #512da8;
+    --primary-050: #ede7f6;
+    --accent: #ffc107;
+    --success: #2e7d32;
+    --ground: #f4f3f7;
+    --surface: #ffffff;
+    --line: #e4e1ea;
+    --ink: #201b29;
+    --ink-2: #5b5566;
+    --ink-3: #8b8496;
+    --shadow: 0 1px 2px rgba(20, 14, 33, .08), 0 2px 8px rgba(20, 14, 33, .06);
+    --radius: 12px;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --primary: #b39ddb; --primary-dark: #9575cd; --primary-050: #2a2340;
+      --accent: #ffca28; --success: #66bb6a;
+      --ground: #14111c; --surface: #1e1a29; --line: #2e2839;
+      --ink: #ece9f2; --ink-2: #b3adc0; --ink-3: #837c92;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 2px 10px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --primary: #b39ddb; --primary-dark: #9575cd; --primary-050: #2a2340;
+    --accent: #ffca28; --success: #66bb6a;
+    --ground: #14111c; --surface: #1e1a29; --line: #2e2839;
+    --ink: #ece9f2; --ink-2: #b3adc0; --ink-3: #837c92;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 2px 10px rgba(0,0,0,.35);
+  }
+  :root[data-theme="light"] {
+    --primary: #673ab7; --primary-dark: #512da8; --primary-050: #ede7f6;
+    --accent: #ffc107; --success: #2e7d32;
+    --ground: #f4f3f7; --surface: #ffffff; --line: #e4e1ea;
+    --ink: #201b29; --ink-2: #5b5566; --ink-3: #8b8496;
+    --shadow: 0 1px 2px rgba(20,14,33,.08), 0 2px 8px rgba(20,14,33,.06);
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: var(--font); background: var(--ground); color: var(--ink); -webkit-font-smoothing: antialiased; }
+  button { font-family: inherit; cursor: pointer; }
+  svg { display: block; }
+  .icon { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* ---- Toolbar ---- */
+  .toolbar {
+    height: 60px; background: var(--primary); color: #fff; display: flex; align-items: center;
+    padding: 0 16px; gap: 10px; position: sticky; top: 0; z-index: 20;
+  }
+  .toolbar .brand { font-weight: 600; font-size: 20px; letter-spacing: .2px; }
+  .toolbar .spacer { flex: 1; }
+  .tbtn { background: transparent; border: 0; color: #fff; display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 8px; font-size: 14px; font-weight: 500; }
+  .tbtn:hover { background: rgba(255,255,255,.14); }
+  .cart-badge { position: relative; }
+  .cart-badge b { position: absolute; top: -6px; right: -8px; background: var(--accent); color: #241c00; font-size: 11px; font-weight: 700; min-width: 18px; height: 18px; border-radius: 9px; display: grid; place-items: center; padding: 0 4px; }
+
+  /* ---- App shell ---- */
+  .shell { display: grid; grid-template-columns: 236px 1fr; min-height: calc(100vh - 60px); }
+  .sidenav { background: var(--surface); border-right: 1px solid var(--line); padding: 12px 8px; }
+  .navlink { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 10px; color: var(--ink-2); font-weight: 500; font-size: 15px; border: 0; background: transparent; width: 100%; text-align: left; }
+  .navlink:hover { background: var(--primary-050); color: var(--ink); }
+  .navlink.active { background: var(--primary-050); color: var(--primary-dark); }
+  .content { padding: 28px clamp(16px, 4vw, 44px); max-width: 1120px; }
+  h1.page { font-size: 30px; font-weight: 700; margin: 0 0 22px; letter-spacing: -.5px; text-wrap: balance; }
+
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .card + .card { margin-top: 20px; }
+  .card h2 { font-size: 17px; font-weight: 600; margin: 0; padding: 18px 22px 4px; }
+  .card .sub { color: var(--ink-3); font-size: 13px; padding: 0 22px 6px; }
+  .card .body { padding: 16px 22px 22px; }
+
+  /* ---- Table ---- */
+  table { width: 100%; border-collapse: collapse; }
+  thead th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: var(--ink-3); font-weight: 600; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+  tbody td { padding: 14px 16px; border-bottom: 1px solid var(--line); font-size: 15px; vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: 0; }
+  .r { text-align: right; }
+  .c { text-align: center; }
+  .sku { color: var(--ink-3); font-size: 12px; }
+  .chip { display: inline-block; padding: 4px 12px; border-radius: 999px; background: var(--primary-050); color: var(--primary-dark); font-size: 12px; font-weight: 600; }
+
+  /* ---- Buttons ---- */
+  .btn { border: 0; border-radius: 9px; padding: 11px 20px; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
+  .btn.primary { background: var(--primary); color: #fff; }
+  .btn.primary:hover { background: var(--primary-dark); }
+  .btn.ghost { background: transparent; color: var(--primary-dark); }
+  .btn.ghost:hover { background: var(--primary-050); }
+  .btn.stroked { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  .btn.stroked:hover { border-color: var(--primary); color: var(--primary-dark); }
+  .iconbtn { background: transparent; border: 0; border-radius: 8px; padding: 7px; color: var(--ink-2); display: inline-grid; place-items: center; }
+  .iconbtn:hover { background: var(--primary-050); color: var(--primary-dark); }
+  .iconbtn.danger:hover { background: #fde7e7; color: #c62828; }
+  @media (prefers-color-scheme: dark){ .iconbtn.danger:hover { background: #3a1f22; color: #ef9a9a; } }
+
+  /* ---- Forms ---- */
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 12.5px; color: var(--ink-2); font-weight: 600; }
+  .field input, .field select { font-family: inherit; font-size: 15px; padding: 11px 13px; border-radius: 9px; border: 1px solid var(--line); background: var(--ground); color: var(--ink); }
+  .field input:focus, .field select:focus { outline: 2px solid var(--primary); outline-offset: -1px; border-color: var(--primary); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+
+  .qty { display: inline-flex; align-items: center; gap: 4px; }
+  .qty b { min-width: 26px; text-align: center; }
+
+  /* ---- Order layout ---- */
+  .order-layout { display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start; }
+  .summary { position: sticky; top: 80px; }
+  .sum-row { display: flex; justify-content: space-between; padding: 7px 0; }
+  .sum-row span { color: var(--ink-2); }
+  .sum-row.grand { font-size: 19px; font-weight: 700; border-top: 1px solid var(--line); padding-top: 12px; margin-top: 4px; }
+  .full { width: 100%; justify-content: center; }
+
+  /* ---- Login ---- */
+  .login-wrap { min-height: 100vh; display: grid; place-items: center; background:
+    radial-gradient(120% 120% at 50% 0%, var(--primary-050), var(--ground)); padding: 20px; }
+  .login-card { width: 380px; max-width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; }
+  .login-card .top { height: 5px; background: linear-gradient(90deg, var(--primary), var(--accent)); }
+  .login-card .in { padding: 30px 28px 26px; }
+  .login-card h1 { margin: 0 0 4px; font-size: 26px; }
+  .login-card p.tag { margin: 0 0 22px; color: var(--ink-3); font-size: 14px; }
+  .login-card .field { margin-bottom: 14px; }
+  .hint { margin-top: 14px; color: var(--ink-3); font-size: 12px; text-align: center; }
+
+  /* ---- Confirmation ---- */
+  .confirm { max-width: 560px; margin: 20px auto; text-align: center; padding: 40px 32px; }
+  .confirm .ok { width: 72px; height: 72px; margin: 0 auto 10px; border-radius: 50%; background: color-mix(in srgb, var(--success) 16%, transparent); display: grid; place-items: center; }
+  .confirm .ok svg { width: 40px; height: 40px; stroke: var(--success); }
+  .confirm h1 { font-size: 26px; margin: 6px 0 8px; }
+  .confirm .onum { font-size: 18px; margin: 0 0 16px; }
+  .confirm .onum b { color: var(--primary-dark); }
+  .confirm .msg { color: var(--ink-2); margin: 3px 0; font-size: 14px; }
+  .confirm .totals { display: flex; justify-content: center; gap: 34px; margin: 24px 0; }
+  .confirm .totals div { display: flex; flex-direction: column; }
+  .confirm .totals span { color: var(--ink-3); font-size: 12px; }
+  .confirm .totals b { font-size: 19px; }
+
+  /* ---- 3D preview ---- */
+  .stage { height: 240px; border-radius: 10px; background: linear-gradient(160deg, var(--primary-050), var(--ground)); display: grid; place-items: center; perspective: 800px; overflow: hidden; }
+  .duct { width: 190px; height: 64px; position: relative; transform-style: preserve-3d; animation: spin 12s linear infinite; }
+  @media (prefers-reduced-motion: reduce){ .duct { animation: none; transform: rotateX(-18deg) rotateY(35deg); } }
+  .duct .f { position: absolute; inset: 0; background: linear-gradient(#c3c9d2, #9aa2ad); border: 1px solid #7b828d; }
+  .duct .top { transform: rotateX(90deg) translateZ(32px); height: 190px; top: -63px; }
+  .duct .side { transform: rotateY(90deg) translateZ(95px); width: 64px; }
+  @keyframes spin { from { transform: rotateX(-18deg) rotateY(0); } to { transform: rotateX(-18deg) rotateY(360deg); } }
+  .stage-cap { text-align: center; color: var(--ink-3); font-size: 12px; margin-top: 8px; }
+
+  .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px); background: #322b40; color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 14px; opacity: 0; transition: .25s; z-index: 50; box-shadow: var(--shadow); }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .demo-ribbon { background: color-mix(in srgb, var(--accent) 22%, var(--surface)); color: var(--ink); border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--line)); border-radius: 10px; padding: 10px 14px; font-size: 13px; margin-bottom: 18px; display: flex; gap: 8px; align-items: center; }
+
+  @media (max-width: 860px) {
+    .shell { grid-template-columns: 1fr; }
+    .sidenav { display: flex; gap: 6px; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--line); position: sticky; top: 60px; z-index: 15; }
+    .navlink { white-space: nowrap; }
+    .order-layout { grid-template-columns: 1fr; }
+    .summary { position: static; }
+    thead { display: none; }
+  }
+</style>
+
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ---------- Icons ----------
+const I = {
+  menu: '<svg class="icon"><path d="M3 6h18M3 12h18M3 18h18"/></svg>',
+  cart: '<svg class="icon"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.6 12.4a1.5 1.5 0 0 0 1.5 1.2h8.3a1.5 1.5 0 0 0 1.5-1.2L22 7H6"/></svg>',
+  order: '<svg class="icon"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v3h6V3M9 12h6M9 16h4"/></svg>',
+  box: '<svg class="icon"><path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v8"/></svg>',
+  user: '<svg class="icon"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>',
+  add: '<svg class="icon"><path d="M12 5v14M5 12h14"/></svg>',
+  addcart: '<svg class="icon"><circle cx="9" cy="20" r="1.3"/><circle cx="18" cy="20" r="1.3"/><path d="M2 3h3l2.6 12.4a1.5 1.5 0 0 0 1.5 1.2h8.3a1.5 1.5 0 0 0 1.5-1.2L22 7H6"/><path d="M14 5h6M17 2v6" stroke-width="1.7"/></svg>',
+  edit: '<svg class="icon"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>',
+  del: '<svg class="icon"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14"/></svg>',
+  minus: '<svg class="icon"><path d="M5 12h14"/></svg>',
+  plus: '<svg class="icon"><path d="M12 5v14M5 12h14"/></svg>',
+  back: '<svg class="icon"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>',
+  fwd: '<svg class="icon"><path d="M5 12h14M12 5l7 7-7 7"/></svg>',
+  check: '<svg class="icon" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>',
+  logout: '<svg class="icon"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>',
+};
+
+// ---------- Mock data ----------
+const PRODUCTS = [
+  { id:'p1', sku:'ELBOW-90-24x12', name:'90° Elbow 24x12', type:'SIMPLE', price:72.25, weight:18.5 },
+  { id:'p2', sku:'RECT-STR-24x12', name:'Rectangular Straight 24x12', type:'WITH_ATTRIBUTES', price:48.50, weight:14.2 },
+  { id:'p3', sku:'ROUND-STR-14', name:'Round Straight 14"', type:'WITH_ATTRIBUTES', price:32.00, weight:9.8 },
+  { id:'p4', sku:'TRANS-24x12-14R', name:'Transition 24x12 to 14" Round', type:'SIMPLE', price:64.00, weight:12.0 },
+];
+const JOBS = [
+  { id:'j1', label:'JOB-1001 — Riverside Medical Center' },
+  { id:'j2', label:'JOB-1002 — Downtown Office Tower' },
+];
+const SHIP = ['Standard','Pickup','Delivery','Freight','Will Call'];
+
+const state = { screen: 'login', cart: [], orderNo: 0 };
+const money = n => '$' + n.toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2});
+
+function summary(){
+  let count=0, price=0, weight=0;
+  for(const it of state.cart){ count+=it.qty; price+=it.p.price*it.qty; weight+=it.p.weight*it.qty; }
+  return { count, price:Math.round(price*100)/100, weight:Math.round(weight*10)/10 };
+}
+function addToCart(id){
+  const p = PRODUCTS.find(x=>x.id===id);
+  const line = state.cart.find(x=>x.p.id===id);
+  if(line) line.qty++; else state.cart.push({ p, qty:1 });
+  toast(p.name + ' added to cart');
+  render();
+}
+function setQty(id,d){ const l=state.cart.find(x=>x.p.id===id); if(!l)return; l.qty=Math.max(1,l.qty+d); render(); }
+function removeLine(id){ state.cart = state.cart.filter(x=>x.p.id!==id); render(); }
+
+let toastT;
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2200); }
+
+function go(s){ state.screen=s; window.scrollTo(0,0); render(); }
+
+// ---------- Screens ----------
+function loginScreen(){
+  return `<div class="login-wrap"><div class="login-card"><div class="top"></div><div class="in">
+    <h1>Webduct</h1><p class="tag">Sign in to place an order</p>
+    <div class="field"><label>Email</label><input id="email" value="admin@webduct.test"></div>
+    <div class="field"><label>Password</label><input type="password" value="password123"></div>
+    <button class="btn primary full" onclick="signIn()">Sign in</button>
+    <p class="hint">Demo — no real account needed. Just click Sign in.</p>
+  </div></div></div>`;
+}
+window.signIn = () => { state.cart=[]; go('catalog'); };
+
+function shell(active, inner){
+  const s = summary();
+  return `<div class="toolbar">
+      <span class="tbtn" style="padding:8px">${I.menu}</span>
+      <span class="brand">Webduct</span>
+      <span class="spacer"></span>
+      <button class="tbtn" onclick="go('cart')"><span class="cart-badge">${I.cart}${s.count?`<b class="num">${s.count}</b>`:''}</span> Cart</button>
+      <button class="tbtn" onclick="go('login')" title="Sign out" style="padding:8px">${I.logout}</button>
+    </div>
+    <div class="shell">
+      <nav class="sidenav">
+        <button class="navlink ${active==='order'?'active':''}" onclick="go('order')">${I.order} Submit Order</button>
+        <button class="navlink ${active==='catalog'?'active':''}" onclick="go('catalog')">${I.box} Products</button>
+        <button class="navlink ${active==='cart'?'active':''}" onclick="go('cart')">${I.cart} Cart</button>
+      </nav>
+      <main class="content">${inner}</main>
+    </div>`;
+}
+
+function catalogScreen(){
+  const rows = PRODUCTS.map(p=>`<tr>
+    <td>${p.sku}</td>
+    <td>${p.name}</td>
+    <td><span class="chip">${p.type==='WITH_ATTRIBUTES'?'Configurable':'Simple'}</span></td>
+    <td class="r num">${money(p.price)}</td>
+    <td class="r num">${p.weight} lb</td>
+    <td class="r">
+      <button class="iconbtn" title="Add to cart" onclick="addToCart('${p.id}')">${I.addcart}</button>
+      <button class="iconbtn" title="Edit" onclick="go('product')">${I.edit}</button>
+    </td></tr>`).join('');
+  return shell('catalog', `
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:6px">
+      <h1 class="page" style="flex:1;margin:0">Products</h1>
+      <button class="btn primary" onclick="go('product')">${I.add} New Product</button>
+    </div>
+    <p class="demo-ribbon">This is a clickable demo with sample data. Add items to your cart, then Submit Order.</p>
+    <div class="card"><table>
+      <thead><tr><th>SKU</th><th>Name</th><th>Type</th><th class="r">Price</th><th class="r">Weight</th><th class="r">Actions</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>`);
+}
+
+function productScreen(){
+  return shell('catalog', `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+      <button class="iconbtn" onclick="go('catalog')">${I.back}</button>
+      <h1 class="page" style="margin:0">Edit Product</h1>
+    </div>
+    <div class="card"><h2>Details</h2><div class="body"><div class="grid">
+      <div class="field"><label>Name</label><input value="Rectangular Straight 24x12"></div>
+      <div class="field"><label>SKU</label><input value="RECT-STR-24x12"></div>
+      <div class="field"><label>Catalog</label><select><option>Standard Ductwork</option></select></div>
+      <div class="field"><label>Category</label><select><option>Rectangular Duct</option></select></div>
+    </div>
+    <div class="grid" style="margin-top:14px">
+      <div class="field"><label>Base price</label><input value="$ 48.50"></div>
+      <div class="field"><label>Weight (lb)</label><input value="14.2"></div>
+      <div class="field"><label>Unit</label><input value="EA"></div>
+      <div class="field"><label>Override type</label><select><option>PRICE_AND_WEIGHT</option></select></div>
+    </div></div></div>
+    <div class="card"><h2>3D preview</h2><div class="body">
+      <div class="stage"><div class="duct"><div class="f front"></div><div class="f top"></div><div class="f side"></div></div></div>
+      <p class="stage-cap">Live Three.js viewer in the full app · drag to rotate, scroll to zoom</p>
+    </div></div>
+    <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:18px">
+      <button class="btn ghost" onclick="go('catalog')">Cancel</button>
+      <button class="btn primary" onclick="toast('Saved (demo)')">Save</button>
+    </div>`);
+}
+
+function cartScreen(){
+  const s = summary();
+  if(!state.cart.length){
+    return shell('cart', `<h1 class="page">Cart</h1><div class="card"><div class="body" style="text-align:center;padding:48px">
+      <div style="color:var(--ink-3);margin-bottom:14px">${I.cart}</div>
+      <p style="color:var(--ink-2)">Your cart is empty.</p>
+      <button class="btn primary" onclick="go('catalog')">Browse products</button></div></div>`);
+  }
+  const rows = state.cart.map(it=>`<tr>
+    <td><div style="font-weight:600">${it.p.name}</div><div class="sku">${it.p.sku}</div></td>
+    <td class="r num">${money(it.p.price)}</td>
+    <td class="c"><span class="qty">
+      <button class="iconbtn" onclick="setQty('${it.p.id}',-1)">${I.minus}</button>
+      <b class="num">${it.qty}</b>
+      <button class="iconbtn" onclick="setQty('${it.p.id}',1)">${I.plus}</button></span></td>
+    <td class="r num">${money(it.p.price*it.qty)}</td>
+    <td class="r num">${(it.p.weight*it.qty).toFixed(1)} lb</td>
+    <td class="r"><button class="iconbtn danger" onclick="removeLine('${it.p.id}')">${I.del}</button></td>
+  </tr>`).join('');
+  return shell('cart', `<h1 class="page">Cart</h1>
+    <div class="card"><table>
+      <thead><tr><th>Product</th><th class="r">Unit price</th><th class="c">Qty</th><th class="r">Total</th><th class="r">Weight</th><th></th></tr></thead>
+      <tbody>${rows}</tbody></table>
+      <div class="body" style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+        <div class="sum-row" style="min-width:240px"><span>Items</span><b class="num">${s.count}</b></div>
+        <div class="sum-row" style="min-width:240px"><span>Total weight</span><b class="num">${s.weight} lb</b></div>
+        <div class="sum-row grand" style="min-width:240px"><span>Total</span><b class="num">${money(s.price)}</b></div>
+      </div>
+      <div class="body" style="display:flex;justify-content:space-between;padding-top:0">
+        <button class="btn ghost" onclick="go('catalog')">${I.back} Continue ordering</button>
+        <button class="btn primary" onclick="go('order')">Proceed to order ${I.fwd}</button>
+      </div></div>`);
+}
+
+function orderScreen(){
+  const s = summary();
+  if(!state.cart.length){
+    return shell('order', `<h1 class="page">Submit Order</h1><div class="card"><div class="body" style="text-align:center;padding:40px">
+      <p style="color:var(--ink-2)">Add products to your cart before submitting an order.</p>
+      <button class="btn primary" onclick="go('catalog')">Browse products</button></div></div>`);
+  }
+  return shell('order', `<h1 class="page">Submit Order</h1>
+    <div class="order-layout">
+      <div>
+        <div class="card"><h2>Job</h2><div class="body">
+          <div class="field"><label>Job</label><select>${JOBS.map(j=>`<option>${j.label}</option>`).join('')}</select></div>
+        </div></div>
+        <div class="card"><h2>Order details</h2><div class="body"><div class="grid">
+          <div class="field"><label>PO number</label><input placeholder="PO-2026-…"></div>
+          <div class="field"><label>Tag</label><input placeholder="Level 3 Mech"></div>
+          <div class="field"><label>Measured by</label><select><option>—</option><option>Jordan Measure</option></select></div>
+          <div class="field"><label>Ordered for</label><select><option>—</option><option>Sam Foreman</option></select></div>
+        </div></div></div>
+        <div class="card"><h2>Shipping</h2><div class="body"><div class="grid">
+          <div class="field"><label>Shipping option</label><select>${SHIP.map(x=>`<option>${x}</option>`).join('')}</select></div>
+          <div class="field"><label>Requested date</label><input type="date"></div>
+        </div></div></div>
+        <div class="card"><h2>Notifications</h2><div class="sub">Who should be notified about this order</div><div class="body">
+          <div class="grid"><div class="field"><label>Type</label><select><option>Email</option><option>User</option><option>Crew</option></select></div>
+          <div class="field"><label>Email address</label><input placeholder="name@company.com"></div></div>
+        </div></div>
+      </div>
+      <div>
+        <div class="card summary"><h2>Order summary</h2><div class="body">
+          <div class="sum-row"><span>Items</span><b class="num">${s.count}</b></div>
+          <div class="sum-row"><span>Weight</span><b class="num">${s.weight} lb</b></div>
+          <div class="sum-row grand"><span>Total</span><b class="num">${money(s.price)}</b></div>
+          <button class="btn primary full" style="margin-top:16px" onclick="submitOrder()">Submit order</button>
+          <button class="btn ghost full" style="margin-top:6px" onclick="go('cart')">Back to cart</button>
+        </div></div>
+      </div>
+    </div>`);
+}
+window.submitOrder = () => { state.orderNo++; go('complete'); };
+
+function completeScreen(){
+  const s = summary();
+  const no = 'WD-' + String(state.orderNo).padStart(5,'0');
+  const html = shell('order', `<div class="card confirm">
+      <div class="ok">${I.check}</div>
+      <h1>Thank you for placing your order</h1>
+      <p class="onum">Your order number is <b>${no}</b></p>
+      <p class="msg">Estimated total ${money(s.price)} for ${s.count} item(s).</p>
+      <p class="msg">Delivery will be scheduled after fabrication.</p>
+      <div class="totals">
+        <div><span>Items</span><b class="num">${s.count}</b></div>
+        <div><span>Weight</span><b class="num">${s.weight} lb</b></div>
+        <div><span>Total</span><b class="num">${money(s.price)}</b></div>
+      </div>
+      <button class="btn primary" onclick="startNew()">${I.add} Start a new order</button>
+    </div>`);
+  return html;
+}
+window.startNew = () => { state.cart=[]; go('catalog'); };
+
+function render(){
+  const map = { login:loginScreen, catalog:catalogScreen, product:productScreen, cart:cartScreen, order:orderScreen, complete:completeScreen };
+  document.getElementById('app').innerHTML = (map[state.screen]||loginScreen)();
+}
+render();
+</script>
