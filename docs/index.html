@@ -203,8 +203,8 @@ const OPTS={
   insulation:['None','1"','1.5"','2"'],
   j1:['S&D','D&S','S&D**','TDC','TDF','Raw','Slip & Drive'],
   j2:['SE Collar Round','Raw Round','Beaded Collar','Rolled Edge','Spin-In'],
-  // rectangular joint list (used by RECTANGULAR > DUCT variants; editable data)
-  rj:['S&D','D&S','TDC','TDF','1 Flg Out','2 Flg Out','Raw','Slip & Drive','Button Punch'],
+  // rectangular joint list (used by all RECTANGULAR variants; editable data)
+  rj:['S&D','D&S','S&D**','TDC','TDF','1 Flg In','1 Flg Out','2 Flg Out','Raw','1 Raw','Furnace Cap','TDC EC','Slip & Drive','Button Punch'],
 };
 // nominal filter sizes (in.) for the Duct-with-Filter select dimension
 const FILTER_WIDTHS=['12','14','16','18','20','24','25','30'];
@@ -282,6 +282,41 @@ const RECT_DUCT=[
 ];
 function rectDuctPart(v){ return Object.assign({ variantCode:v.code }, v); }
 
+// ---------- RECTANGULAR > END CAPS (single joint; A Width, B Depth) ----------
+const RECT_ENDCAPS=[
+  { code:'ec-flange', label:'End Cap 1 inch Flange', dims:[D('A','Width'),D('B','Depth')], joints:[RJ('j1','1 Raw')], notes:true },
+  { code:'ec-sd',     label:'End Cap SD',            dims:[D('A','Width'),D('B','Depth')], joints:[RJ('j1','S&D')], notes:true },
+  { code:'ec-furnace',label:'Furnace End Cap',       dims:[D('A','Width'),D('B','Depth')], joints:[RJ('j1','Furnace Cap')], notes:true },
+  { code:'ec-tdc',    label:'End Cap TDC',           dims:[D('A','Width'),D('B','Depth')], joints:[RJ('j1','TDC EC')], notes:true },
+];
+function rectCapPart(v){ return Object.assign({ shape:'rectcap', variantCode:v.code }, v); }
+
+// ---------- RECTANGULAR > ELBOWS & TEES ----------
+const ANG=(k)=>D(k,'Angle',{unit:'Degrees'});   // angle dim (degrees, not inches)
+const RECT_ELBOWS=[
+  { code:'elb-sq-vanes',   label:'Elbow Square - Vanes',    dims:[D('A','Top Width'),D('B','Depth'),D('C','Bottom Width'),D('D','Top Extension'),D('E','Bottom Extension')], joints:RJn(2) },
+  { code:'elb-ang-novanes',label:'Elbow Angle - No Vanes',  dims:[D('A','Top Width'),D('B','Depth'),D('C','Bottom Width'),ANG('D'),D('E','Top Extension'),D('F','Bottom Extension')], joints:RJn(2) },
+  { code:'elb-ang-vanes',  label:'Elbow Angle - Vanes',     dims:[D('A','Top Width'),D('B','Depth'),D('C','Bottom Width'),ANG('D'),D('E','Top Extension'),D('F','Bottom Extension')], joints:RJn(2) },
+  { code:'elb-radius',     label:'Elbow - Radius',          dims:[D('A','Width'),D('B','Depth'),ANG('C'),D('D','Inner Radius')], joints:RJn(2) },
+  { code:'elb-sq-novanes', label:'Elbow Square - No Vanes', dims:[D('A','Top Width'),D('B','Depth'),D('C','Bottom Width'),D('D','Top Extension'),D('E','Bottom Extension')], joints:RJn(2) },
+  { code:'elb-goose-rad',  label:'Elbow - Goose Neck Radius Throat', dims:[D('A','Top Width'),D('B','Depth'),D('C','Bottom Width'),D('D','Bottom Extension'),D('E','Inner Radius')], joints:[RJ('j1','1 Flg In')] },
+  { code:'dc-lb',          label:'Drop Cheek Elbow Left & Bottom Offset',  dims:[D('A','Bottom Width'),D('B','Bottom Depth'),D('C','Top Width'),D('D','Top Depth'),ANG('E'),D('F','Inner Radius'),D('G','Bottom Up')], joints:RJn(2) },
+  { code:'dc-rb',          label:'Drop Cheek Elbow Right & Bottom Offset', dims:[D('A','Bottom Width'),D('B','Bottom Depth'),D('C','Top Width'),D('D','Top Depth'),ANG('E'),D('F','Inner Radius'),D('G','Bottom Up')], joints:RJn(2) },
+  { code:'elb-rad-str',    label:'Elbow - Radius with Straight',      dims:[D('A','Width'),D('B','Depth'),ANG('C'),D('D','Top Extension'),D('E','Bottom Extension'),D('F','Inner Radius')], joints:RJn(2) },
+  { code:'elb-rad-heel',   label:'Elbow - Radius heel Square throat', dims:[D('A','Top Width'),D('B','Depth'),D('C','Bottom Width'),ANG('D'),D('E','Top Extension'),D('F','Bottom Extension')], joints:RJn(2) },
+  { code:'elb-reducing',   label:'Elbow Reducing',                    dims:[D('A','Top Width'),D('B','Depth'),D('C','Bottom Width'),ANG('D'),D('E','Inner Radius')], joints:RJn(2) },
+  { code:'elb-red-str',    label:'Elbow Reducing with Straight',      dims:[D('A','Top Width'),D('B','Depth'),D('C','Bottom Width'),ANG('D'),D('E','Top Extension'),D('F','Bottom Extension'),D('G','Inner Radius')], joints:RJn(2) },
+  { code:'dc-lt',          label:'Drop Cheek Elbow Left & Top Offset',  dims:[D('A','Bottom Width'),D('B','Bottom Depth'),D('C','Top Width'),D('D','Top Depth'),ANG('E'),D('F','Inner Radius'),D('G','Offset')], joints:RJn(2) },
+  { code:'dc-rt',          label:'Drop Cheek Elbow Right & Top Offset', dims:[D('A','Bottom Width'),D('B','Bottom Depth'),D('C','Top Width'),D('D','Top Depth'),ANG('E'),D('F','Inner Radius'),D('G','Offset')], joints:RJn(2) },
+  { code:'elb-goose-sq',   label:'Elbow - Goose Neck Square Throat',  dims:[D('A','Top Width'),D('B','Depth'),D('C','Bottom Width'),D('D','Top Extension'),D('E','Bottom Extension')], joints:[RJ('j1','1 Flg In')] },
+  { code:'pants',          label:'Pants',                   dims:[D('A','Bottom Width'),D('B','Depth'),D('C','Left Width'),D('D','Right Width'),D('E','Length'),D('F','Offset'),D('G','Left Out')], joints:RJn(3) },
+  { code:'tee-novanes',    label:'Square Tee - No Vanes',   dims:[D('A','Bottom Width'),D('B','Depth'),D('C','Left Width'),D('D','Right Width'),D('E','Bottom Left Extension'),D('F','Right Extension'),D('G','Left Extension')], joints:RJn(3), note:'C+E must be greater than or equal to D+2' },
+  { code:'tee-vanes',      label:'Square Tee - Vanes',      dims:[D('A','Bottom Width'),D('B','Depth'),D('C','Left Width'),D('D','Right Width'),D('E','Bottom Left Extension'),D('F','Right Extension'),D('G','Left Extension')], joints:[RJ('j1','S&D**'),RJ('j2','S&D'),RJ('j3','S&D')], note:'C+E must be greater than or equal to D+2' },
+  { code:'sqoff-novanes',  label:'Square Offset - No Vanes',dims:[D('A','Left Width'),D('B','Depth'),D('C','Right Width'),D('D','Length'),D('E','Left Extension'),D('F','Right Extension'),D('G','Offset Width')], joints:RJn(2) },
+  { code:'sqoff-vanes',    label:'Square Offset - Vanes',   dims:[D('A','Left Width'),D('B','Depth'),D('C','Right Width'),D('D','Length'),D('E','Left Extension'),D('F','Right Extension'),D('G','Offset Width')], joints:RJn(2) },
+];
+function rectFittingPart(v){ return Object.assign({ shape:'rectfitting', variantCode:v.code, desc:'All Fittings - assembled' }, v); }
+
 // ---------- Catalog tree ----------
 function leaf(id,label,thumb){ return {id,label,thumb,soon:true}; }
 // build a category whose children are scaffolded leaf tiles: arr = [[label,thumb],...]
@@ -312,8 +347,10 @@ const CATALOG={ id:'root', label:'Products', children:[
   { id:'rectangular', label:'RECTANGULAR', thumb:'rect', children:[
     { id:'duct', label:'DUCT', thumb:'rect',
       children: RECT_DUCT.map(v=>({ id:'rd-'+v.code, label:v.label, thumb:'rect', part:rectDuctPart(v) })) },
-    leaf('rendcaps','End Caps','cap'),
-    leaf('relbows','Elbows & Tees','elbow'),
+    { id:'endcaps', label:'END CAPS', thumb:'cap',
+      children: RECT_ENDCAPS.map(v=>({ id:v.code, label:v.label, thumb:'cap', part:rectCapPart(v) })) },
+    { id:'elbowstees', label:'ELBOWS & TEES', thumb:'elbow',
+      children: RECT_ELBOWS.map(v=>({ id:v.code, label:v.label, thumb:'elbow', part:rectFittingPart(v) })) },
     leaf('rtransitions','Transitions','reducer'),
     leaf('rtakeoffs',"Take Off's",'tee'),
     leaf('roffsets','Offsets','elbow'),
@@ -396,8 +433,8 @@ function areaSqFt(part, s){
     const perim=(P2(A,B)+Math.PI*C)/2;
     return Math.max(perim*Math.max(D,1)/144,0.5);
   }
-  // generic fallback using first up-to-3 numeric dims
-  const vals=(part.dims||[]).map(d=>n(s[d.key])).filter(x=>x>0);
+  // generic fallback using first up-to-3 numeric dims (skip angle/select dims)
+  const vals=(part.dims||[]).filter(d=>d.unit!=='Degrees'&&d.type!=='select').map(d=>n(s[d.key])).filter(x=>x>0);
   const [a=12,b=12,c=12]=vals;
   return Math.max((2*(a+b))*c/144,0.5);
 }
@@ -408,7 +445,7 @@ function estimate(part, s){
   let price=area*p.fabPerSqFt*(p.materialMult[mat]||1);
   price+=area*(p.insulAddPerSqFt[s.insulation]||0);
   (part.joints||[]).forEach(j=>{ price+=(p.jointAdd[s[j.key]]||0); });
-  if(part.shape==='sq2round') price*=p.fittingComplexity;
+  if(part.shape==='sq2round'||part.shape==='rectfitting') price*=p.fittingComplexity;
   // rectangular fittings with taps/CTOs carry extra fabrication vs plain duct
   else if(part.shape==='rectduct' && part.code && part.code!=='straight' && part.code!=='slip') price*=p.fittingComplexity;
   return { price:Math.round(price*100)/100, weight:Math.round(wt*10)/10, area:Math.round(area*10)/10 };
@@ -529,7 +566,7 @@ function configureScreen(){
     return '<button class="crumb '+(cur?'cur':'')+'" onclick="go(\'catalog\',{path:'+jattr(c.path)+'})">'+(i>0?I.chevR:'')+esc(c.node.label)+'</button>';
   }).join('');
   const dimFields=part.dims.map(d=>{
-    const unit=d.type==='select'?'':' <span style="color:var(--ink-3);font-weight:400">[Inches]</span>';
+    const unit=d.type==='select'?'':' <span style="color:var(--ink-3);font-weight:400">['+(d.unit||'Inches')+']</span>';
     const maxHint=d.max?' <span style="color:var(--ink-3);font-weight:400">(Max: '+d.max+')</span>':'';
     let input;
     if(d.type==='select'){
@@ -550,6 +587,7 @@ function configureScreen(){
     +'<h1 class="page">Product ['+esc(node.label)+']</h1>'
     +'<div class="card"><div class="body"><div class="cfg-diagram">'+diagram(part,'A')+diagram(part,'B')+'</div></div></div>'
     +'<div class="card"><h2>Dimensions</h2><div class="body">'
+      +(part.note?'<p class="ribbon" style="margin-top:0">Note* '+esc(part.note)+'</p>':'')
       +'<div class="field" style="max-width:160px;margin-bottom:12px"><label>Quantity</label><input type="number" min="1" value="'+s.qty+'" oninput="cfgSet(\'qty\',Math.max(1,Number(this.value)||1))"></div>'
       +'<div class="grid">'+dimFields+'</div></div></div>'
     +'<div class="card"><h2>Specification</h2><div class="body"><div class="grid">'
@@ -601,6 +639,27 @@ function diagram(part,view){
       +'<text x="205" y="70" font-size="10" fill="var(--ink-3)" stroke="none">A</text>'
       +'<text x="110" y="70" text-anchor="middle" font-size="11" fill="var(--ink-3)" stroke="none">'+esc(part.variantCode||'')+'</text>'
       +'</svg><div style="font-size:11px;color:var(--ink-3);margin-top:2px">Side View</div></div>';
+  }
+  if(part.shape==='rectcap'){
+    if(view!=='A') return '';
+    return '<div style="text-align:center"><svg width="180" height="120" viewBox="0 0 180 120" fill="none" stroke="var(--ink-2)" stroke-width="1.4">'
+      +'<path d="M50 30 L120 30 L140 45 L140 90 L70 90 L50 75 Z" fill="var(--line)"/>'
+      +'<path d="M50 30 L50 75 L70 90" fill="none"/>'
+      +'<text x="95" y="105" text-anchor="middle" font-size="10" fill="var(--ink-3)" stroke="none">A</text>'
+      +'<text x="150" y="70" font-size="10" fill="var(--ink-3)" stroke="none">B</text>'
+      +'<text x="40" y="55" font-size="10" fill="var(--danger)" stroke="none">J1</text>'
+      +'</svg><div style="font-size:11px;color:var(--ink-3);margin-top:2px">Left Side View</div></div>';
+  }
+  if(part.shape==='rectfitting'){
+    if(view!=='A') return '';
+    const nJ=(part.joints||[]).length;
+    return '<div style="text-align:center"><svg width="200" height="150" viewBox="0 0 200 150" fill="none" stroke="var(--ink-2)" stroke-width="1.4">'
+      +'<path d="M40 20 L110 20 L110 90 L180 90 L180 130 L40 130 Z" fill="var(--line)"/>'
+      +'<text x="30" y="70" font-size="10" fill="var(--danger)" stroke="none">J1</text>'
+      +(nJ>1?'<text x="185" y="112" font-size="10" fill="var(--danger)" stroke="none">J2</text>':'')
+      +(nJ>2?'<text x="70" y="145" font-size="10" fill="var(--danger)" stroke="none">J3</text>':'')
+      +'<text x="75" y="80" text-anchor="middle" font-size="11" fill="var(--ink-3)" stroke="none">'+esc(part.variantCode||'')+'</text>'
+      +'</svg><div style="font-size:11px;color:var(--ink-3);margin-top:2px">Top View</div></div>';
   }
   if(part.shape!=='sq2round'){ return '<svg width="150" height="130"></svg>'; }
   return '<div style="text-align:center"><svg width="160" height="140" viewBox="0 0 160 140" fill="none" stroke="var(--ink-2)" stroke-width="1.4">'
