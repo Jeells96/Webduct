@@ -1,0 +1,138 @@
+<div class="wd-page">
+  <div class="header">
+    <a mat-icon-button routerLink="/main/catalog"><mat-icon>arrow_back</mat-icon></a>
+    <h1>{{ isEdit() ? 'Edit Product' : 'New Product' }}</h1>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="save()">
+    <mat-card class="section">
+      <mat-card-header><mat-card-title>Details</mat-card-title></mat-card-header>
+      <mat-card-content>
+        <div class="grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Name</mat-label>
+            <input matInput formControlName="name" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>SKU</mat-label>
+            <input matInput formControlName="sku" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Catalog</mat-label>
+            <mat-select formControlName="catalogId">
+              @for (c of catalogs(); track c.id) {
+                <mat-option [value]="c.id">{{ c.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Category</mat-label>
+            <mat-select formControlName="categoryId">
+              <mat-option [value]="''">— None —</mat-option>
+              @for (c of categories(); track c.id) {
+                <mat-option [value]="c.id">{{ c.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="toggle-row">
+          <span class="label">Product type</span>
+          <mat-button-toggle-group formControlName="type">
+            <mat-button-toggle [value]="ProductType.Simple">Simple</mat-button-toggle>
+            <mat-button-toggle [value]="ProductType.WithAttributes">Configurable</mat-button-toggle>
+          </mat-button-toggle-group>
+          <mat-slide-toggle formControlName="installable">Installable</mat-slide-toggle>
+        </div>
+
+        <div class="grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Base price</mat-label>
+            <input matInput type="number" step="0.01" formControlName="basePrice" />
+            <span matTextPrefix>$&nbsp;</span>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Weight (lb)</mat-label>
+            <input matInput type="number" step="0.001" formControlName="weight" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Unit</mat-label>
+            <input matInput formControlName="unit" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Override type</mat-label>
+            <mat-select formControlName="overrideType">
+              @for (o of overrideTypes; track o) {
+                <mat-option [value]="o">{{ o }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="section">
+      <mat-card-header><mat-card-title>Description</mat-card-title></mat-card-header>
+      <mat-card-content>
+        <wd-rich-text-editor formControlName="description" placeholder="Product description…"></wd-rich-text-editor>
+      </mat-card-content>
+    </mat-card>
+
+    @if (asset3d()) {
+      <mat-card class="section">
+        <mat-card-header><mat-card-title>3D preview</mat-card-title></mat-card-header>
+        <mat-card-content>
+          <wd-three-viewer [asset]="asset3d()"></wd-three-viewer>
+          <p class="hint-3d">Drag to rotate · scroll to zoom</p>
+        </mat-card-content>
+      </mat-card>
+    }
+
+    @if (isWithAttributes) {
+      <mat-card class="section">
+        <mat-card-header>
+          <mat-card-title>Attributes</mat-card-title>
+          <mat-card-subtitle>Fields the customer fills in when ordering this product</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div formArrayName="attributes">
+            @for (attr of attributes.controls; track idx; let idx = $index) {
+              <div class="attr-row" [formGroupName]="idx">
+                <mat-form-field appearance="outline">
+                  <mat-label>Label</mat-label>
+                  <input matInput formControlName="name" />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Type</mat-label>
+                  <mat-select formControlName="type">
+                    @for (t of fieldTypes; track t) {
+                      <mat-option [value]="t">{{ t }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="grow">
+                  <mat-label>Options (comma separated)</mat-label>
+                  <input matInput formControlName="options" />
+                </mat-form-field>
+                <mat-slide-toggle formControlName="required">Required</mat-slide-toggle>
+                <button mat-icon-button type="button" color="warn" (click)="removeAttribute(idx)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            }
+          </div>
+          <button mat-stroked-button type="button" (click)="addAttribute()">
+            <mat-icon>add</mat-icon> Add attribute
+          </button>
+        </mat-card-content>
+      </mat-card>
+    }
+
+    <div class="form-actions">
+      <a mat-button routerLink="/main/catalog">Cancel</a>
+      <button mat-raised-button color="primary" type="submit" [disabled]="saving()">
+        {{ saving() ? 'Saving…' : 'Save' }}
+      </button>
+    </div>
+  </form>
+</div>

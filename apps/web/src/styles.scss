@@ -1,0 +1,50 @@
+
+@use '@angular/material' as mat;
+@use '@ng-select/ng-select/themes/material.theme.css';
+
+@include mat.core();
+
+// Deep-purple primary (#673ab7) matching the original Webduct ordering-ui theme.
+$webduct-primary: mat.define-palette(mat.$deep-purple-palette, 500);
+$webduct-accent: mat.define-palette(mat.$amber-palette, A200, A100, A400);
+$webduct-warn: mat.define-palette(mat.$red-palette);
+
+$webduct-theme: mat.define-light-theme(
+  (
+    color: (
+      primary: $webduct-primary,
+      accent: $webduct-accent,
+      warn: $webduct-warn,
+    ),
+    typography: mat.define-typography-config($font-family: 'Roboto, "Helvetica Neue", sans-serif'),
+    density: 0,
+  )
+);
+
+@include mat.all-component-themes($webduct-theme);
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+  background-color: #fafafa;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.wd-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+}
+
+.wd-spacer {
+  flex: 1 1 auto;
+}

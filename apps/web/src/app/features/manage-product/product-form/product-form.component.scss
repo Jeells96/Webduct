@@ -1,0 +1,40 @@
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.section {
+  margin-bottom: 20px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin: 12px 0 20px;
+  flex-wrap: wrap;
+  .label {
+    color: rgba(0, 0, 0, 0.6);
+  }
+}
+.attr-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  .grow {
+    flex: 1 1 200px;
+  }
+}
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+.hint-3d { color: rgba(0,0,0,0.5); font-size: 12px; text-align: center; margin: 8px 0 0; }
