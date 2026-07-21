@@ -204,7 +204,7 @@ const OPTS={
   j1:['S&D','D&S','S&D**','TDC','TDF','Raw','Slip & Drive'],
   j2:['SE Collar Round','Raw Round','Beaded Collar','Rolled Edge','Spin-In'],
   // rectangular joint list (used by all RECTANGULAR variants; editable data)
-  rj:['S&D','D&S','S&D**','TDC','TDF','1 Flg In','1 Flg Out','2 Flg Out','Raw','1 Raw','Furnace Cap','TDC EC','Slip & Drive','Button Punch'],
+  rj:['S&D','D&S','S&D**','TDC','TDF','1 Flg In','1 Flg Out','2 Flg Out','Raw','1 Raw','Furnace Cap','TDC EC','Tap In','Tap Out','Slip & Drive','Button Punch'],
 };
 // nominal filter sizes (in.) for the Duct-with-Filter select dimension
 const FILTER_WIDTHS=['12','14','16','18','20','24','25','30'];
@@ -317,6 +317,44 @@ const RECT_ELBOWS=[
 ];
 function rectFittingPart(v){ return Object.assign({ shape:'rectfitting', variantCode:v.code, desc:'All Fittings - assembled' }, v); }
 
+// optional joint (adds a blank "Select" choice; default empty)
+function RJopt(key){ return { key, label:'Joint ('+key.toUpperCase()+')', options:OPTS.rj, def:'', optional:true }; }
+
+// ---------- RECTANGULAR > TRANSITIONS ----------
+const RECT_TRANS=[
+  { code:'trans-cl',     label:'Trans-CL both ways', dims:[D('A','Width In'),D('B','Depth In'),D('C','Width Out'),D('D','Depth Out'),D('E','Length')], joints:[RJ('j1'),RJ('j2'),RJopt('j3')] },
+  { code:'trans-cl-fob', label:'Trans-CL & FOB',     dims:[D('A','Width In'),D('B','Depth In'),D('C','Width Out'),D('D','Depth Out'),D('E','Length')], joints:RJn(2) },
+  { code:'trans-cl-fot', label:'Trans-CL & FOT',     dims:[D('A','Width In'),D('B','Depth In'),D('C','Width Out'),D('D','Depth Out'),D('E','Length')], joints:RJn(2) },
+  { code:'trans-lb', label:'Trans-Left & Bottom Offset',  dims:[D('A','Width In'),D('B','Depth In'),D('C','Width Out'),D('D','Depth Out'),D('E','Length'),D('F','Left In'),D('G','Bottom Up')], joints:RJn(2) },
+  { code:'trans-rb', label:'Trans-Right & Bottom Offset', dims:[D('A','Width In'),D('B','Depth In'),D('C','Width Out'),D('D','Depth Out'),D('E','Length'),D('F','Right In'),D('G','Bottom Up')], joints:RJn(2) },
+  { code:'trans-lt', label:'Trans-Left & Top Offset',     dims:[D('A','Width In'),D('B','Depth In'),D('C','Width Out'),D('D','Depth Out'),D('E','Length'),D('F','Left In'),D('G','Top Up')], joints:RJn(2) },
+  { code:'trans-rt', label:'Trans-Right & Top Offset',    dims:[D('A','Width In'),D('B','Depth In'),D('C','Width Out'),D('D','Depth Out'),D('E','Length'),D('F','Right In'),D('G','Top Up')], joints:RJn(2) },
+];
+
+// ---------- RECTANGULAR > TAKE OFF'S ----------
+const RECT_TAKEOFFS=[
+  { code:'dto-simple',  label:'Duct Take Off',       dims:[D('A','Width Out'),D('B','Depth'),D('C','Extension')], joints:[RJ('j1','Tap In'),RJ('j2','S&D')], desc:'All Duct - assembled' },
+  { code:'dto-bd',      label:'Duct Take Off cw BD', dims:[D('A','Width Out'),D('B','Depth'),D('C','Extension')], joints:[RJ('j1','Tap In'),RJ('j2','S&D')] },
+  { code:'tap-mitred',  label:'Straight Tap, Angle Tap or Mitred Duct', dims:[D('A','Width'),D('B','Depth'),D('C','Length'),D('D','Length (2)')], joints:[RJ('j1','Tap In'),RJ('j2','S&D')] },
+];
+
+// ---------- RECTANGULAR > OFFSETS ----------
+const RECT_OFFSETS=[
+  { code:'roff-left',  label:'Radius Offset Left',  dims:[D('A','Width In'),D('B','Depth'),D('C','Width Out'),D('D','Length'),D('E','Left In')], joints:RJn(2) },
+  { code:'roff-lt',    label:'Radius Offset-Left & Top',    dims:[D('A','Width In'),D('B','Depth In'),D('C','Width Out'),D('D','Depth Out'),D('E','Length'),D('F','Left In'),D('G','Top Up')], joints:RJn(2) },
+  { code:'roff-lb',    label:'Radius Offset-Left & Bottom', dims:[D('A','Width In'),D('B','Depth In'),D('C','Width Out'),D('D','Depth Out'),D('E','Length'),D('F','Left In'),D('G','Bottom Up')], joints:RJn(2) },
+  { code:'roff-right', label:'Radius Offset Right', dims:[D('A','Width In'),D('B','Depth'),D('C','Width Out'),D('D','Length'),D('E','Right In')], joints:RJn(2) },
+  { code:'roff-rt',    label:'Radius Offset-Right & Top',    dims:[D('A','Width In'),D('B','Depth In'),D('C','Width Out'),D('D','Depth Out'),D('E','Length'),D('F','Right In'),D('G','Top Up')], joints:RJn(2) },
+  { code:'roff-rb',    label:'Radius Offset-Right & Bottom', dims:[D('A','Width In'),D('B','Depth In'),D('C','Width Out'),D('D','Depth Out'),D('E','Length'),D('F','Right In'),D('G','Bottom Up')], joints:RJn(2) },
+  { code:'sloff',      label:'Straight Line Offset', dims:[D('A','Width'),D('B','Depth'),D('C','Length'),D('D','Offset',{neg:true})], joints:[RJ('j1','S&D**'),RJ('j2','S&D')], note:'Offset Width (D) can be a negative number' },
+  { code:'sloff-rt',   label:'Straight Line Offset-Right & Top',    dims:[D('A','Width'),D('B','Depth'),D('C','Length'),D('D','Right In'),D('E','Top Up')], joints:RJn(2) },
+  { code:'sloff-rb',   label:'Straight Line Offset Right & Bottom', dims:[D('A','Width'),D('B','Depth'),D('C','Length'),D('D','Right In'),D('E','Bottom Up')], joints:RJn(2) },
+  { code:'sloff-lt',   label:'Straight Line Offset Left & Top',     dims:[D('A','Width'),D('B','Depth'),D('C','Length'),D('D','Left In'),D('E','Top Up')], joints:RJn(2) },
+  { code:'sloff-lb',   label:'Straight Line Offset Left & Bottom',  dims:[D('A','Width'),D('B','Depth'),D('C','Length'),D('D','Left In'),D('E','Bottom Up')], joints:RJn(2) },
+  { code:'mit-off',    label:'Mitred Offset',               dims:[D('A','Bottom Width'),D('B','Depth'),D('C','Top Width'),D('D','Length'),D('E','Offset',{neg:true})], joints:RJn(2) },
+  { code:'mit-off-str',label:'Mitred Offset with Straight', dims:[D('A','Bottom Width'),D('B','Depth'),D('C','Top Width'),D('D','Length'),D('E','C1 Straight'),D('F','C2 Straight'),D('G','Offset',{neg:true})], joints:RJn(2) },
+];
+
 // ---------- Catalog tree ----------
 function leaf(id,label,thumb){ return {id,label,thumb,soon:true}; }
 // build a category whose children are scaffolded leaf tiles: arr = [[label,thumb],...]
@@ -351,9 +389,12 @@ const CATALOG={ id:'root', label:'Products', children:[
       children: RECT_ENDCAPS.map(v=>({ id:v.code, label:v.label, thumb:'cap', part:rectCapPart(v) })) },
     { id:'elbowstees', label:'ELBOWS & TEES', thumb:'elbow',
       children: RECT_ELBOWS.map(v=>({ id:v.code, label:v.label, thumb:'elbow', part:rectFittingPart(v) })) },
-    leaf('rtransitions','Transitions','reducer'),
-    leaf('rtakeoffs',"Take Off's",'tee'),
-    leaf('roffsets','Offsets','elbow'),
+    { id:'transitions', label:'TRANSITIONS', thumb:'reducer',
+      children: RECT_TRANS.map(v=>({ id:v.code, label:v.label, thumb:'reducer', part:rectFittingPart(v) })) },
+    { id:'takeoffs', label:"TAKE OFF'S", thumb:'tee',
+      children: RECT_TAKEOFFS.map(v=>({ id:v.code, label:v.label, thumb:'tee', part:rectFittingPart(v) })) },
+    { id:'offsets', label:'OFFSETS', thumb:'elbow',
+      children: RECT_OFFSETS.map(v=>({ id:v.code, label:v.label, thumb:'elbow', part:rectFittingPart(v) })) },
     leaf('rflex','Flex','flex'),
     leaf('rtroffers','Troffers / Grill','rect'),
     leaf('rscreens','Screens','misc'),
@@ -556,7 +597,7 @@ function configureScreen(){
   if(!window.__spec || window.__specPath!==path.join('/')){
     window.__spec={ qty:1, material:OPTS.material[0], spec:OPTS.spec[0], gauge:OPTS.gauge[0], insulation:OPTS.insulation[0], tag:'', notes:'', autoJoints:true };
     part.dims.forEach(d=>window.__spec[d.key]='');
-    joints.forEach(j=>window.__spec[j.key]=j.def||j.options[0]);
+    joints.forEach(j=>window.__spec[j.key]=(j.def!==undefined?j.def:j.options[0]));
     window.__specPath=path.join('/');
   }
   const s=window.__spec;
@@ -573,12 +614,16 @@ function configureScreen(){
       input='<select onchange="cfgSet(\''+d.key+'\',this.value)"><option value=""'+(s[d.key]===''?' selected':'')+'>Select…</option>'
         +d.options.map(o=>'<option '+(String(s[d.key])===String(o)?'selected':'')+'>'+esc(o)+'</option>').join('')+'</select>';
     } else {
-      input='<input type="number" min="0" step="0.25"'+(d.max?' max="'+d.max+'"':'')+' value="'+esc(s[d.key])+'" placeholder="'+esc(d.label)+'" oninput="cfgDim(\''+d.key+'\',this.value)">';
+      input='<input type="number" '+(d.neg?'':'min="0" ')+'step="0.25"'+(d.max?' max="'+d.max+'"':'')+' value="'+esc(s[d.key])+'" placeholder="'+esc(d.label)+'" oninput="cfgDim(\''+d.key+'\',this.value)">';
     }
     return '<div class="field"><label>('+d.key+') '+esc(d.label)+unit+maxHint+'</label>'+input+'</div>';
   }).join('');
   const dd=(id,label,opts)=>'<div class="field"><label>'+label+'</label><select onchange="cfgSet(\''+id+'\',this.value)" '+(isJoint(id)&&s.autoJoints?'disabled':'')+'>'+opts.map(o=>'<option '+(String(s[id])===String(o)?'selected':'')+'>'+esc(o)+'</option>').join('')+'</select></div>';
-  const jointFields=joints.map(j=>dd(j.key,j.label,j.options)).join('');
+  const jointFields=joints.map(j=>{
+    const opts=(j.optional?['']:[]).concat(j.options);
+    const optsHtml=opts.map(o=>'<option value="'+esc(o)+'"'+(String(s[j.key])===String(o)?' selected':'')+'>'+(o===''?'Select…':esc(o))+'</option>').join('');
+    return '<div class="field"><label>'+j.label+'</label><select onchange="cfgSet(\''+j.key+'\',this.value)" '+(s.autoJoints?'disabled':'')+'>'+optsHtml+'</select></div>';
+  }).join('');
   const est=estimate(part,s);
   const notesCard=part.notes?('<div class="card"><h2>Notes</h2><div class="body">'
       +'<textarea rows="3" placeholder="Notes" oninput="cfgSet(\'notes\',this.value)" style="width:100%;padding:10px 12px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;resize:vertical">'+esc(s.notes)+'</textarea></div></div>'):'';
@@ -609,7 +654,7 @@ function configureScreen(){
 }
 function cfgDim(k,v){ window.__spec[k]=v===''?'':Number(v); cfgRefresh(); }
 function cfgSet(k,v){ window.__spec[k]=v; cfgRefresh(); }
-function cfgAuto(on){ window.__spec.autoJoints=on; if(on){ const node=nodeAtPath(state.params.path||[]); (node.part.joints||[]).forEach(j=>window.__spec[j.key]=j.def||j.options[0]); } render(); }
+function cfgAuto(on){ window.__spec.autoJoints=on; if(on){ const node=nodeAtPath(state.params.path||[]); (node.part.joints||[]).forEach(j=>window.__spec[j.key]=(j.def!==undefined?j.def:j.options[0])); } render(); }
 function cfgRefresh(){
   const node=nodeAtPath(state.params.path||[]); if(!node.part)return;
   const est=estimate(node.part,window.__spec);
