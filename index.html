@@ -203,15 +203,32 @@ const OPTS={
   insulation:['None','1"','1.5"','2"'],
   j1:['S&D','D&S','S&D**','TDC','TDF','Raw','Slip & Drive'],
   j2:['SE Collar Round','Raw Round','Beaded Collar','Rolled Edge','Spin-In'],
+  // rectangular joint list (used by RECTANGULAR > DUCT variants; editable data)
+  rj:['S&D','D&S','TDC','TDF','1 Flg Out','2 Flg Out','Raw','Slip & Drive','Button Punch'],
 };
+// nominal filter sizes (in.) for the Duct-with-Filter select dimension
+const FILTER_WIDTHS=['12','14','16','18','20','24','25','30'];
 const JOINT_DESC='S&D - Drive always short side\nD&S - Drive always long side\n\nS&D** - Connectors Supplied\nS&D - No Connectors Supplied';
 
-// A "part" = { dims:[{key,label}], diagram, shape } ; dropdowns are standard (material/spec/gauge/insulation/j1/j2)
+// ---------- Part model ----------
+// A "part" = {
+//   code, shape, variantCode, label,
+//   dims:   [{ key, label, type?:'select', options?, max? }],   // number input, or a select
+//   joints: [{ key, label, options, def? }],                    // 1..4 joint dropdowns
+//   notes?: bool                                                // show a Notes textarea
+// }
+// Standard dropdowns (material/spec/gauge/insulation) are always shown.
+function D(key,label,extra){ return Object.assign({key,label},extra||{}); }
+// rectangular joint dropdown for key j1..j4
+function RJ(key,def){ return { key, label:'Joint ('+key.toUpperCase()+')', options:OPTS.rj, def:def||OPTS.rj[0] }; }
+function RJn(n,def){ return Array.from({length:n},(_,i)=>RJ('j'+(i+1),def)); }
+
 // Square-to-Round variants share the same field set (A Width, B Depth, C Diameter, D Length).
-function s2rPart(code, shape){
-  return { code, shape:'sq2round', variantCode:shape,
-    dims:[{key:'A',label:'Width'},{key:'B',label:'Depth'},{key:'C',label:'Diameter'},{key:'D',label:'Length'}],
-    dropdowns:['material','spec','gauge','insulation','j1','j2'] };
+function s2rPart(code){
+  return { code, shape:'sq2round', variantCode:code,
+    dims:[D('A','Width'),D('B','Depth'),D('C','Diameter'),D('D','Length')],
+    joints:[{key:'j1',label:'Joint (J1)',options:OPTS.j1,def:OPTS.j1[0]},
+            {key:'j2',label:'Joint (J2)',options:OPTS.j2,def:OPTS.j2[0]}] };
 }
 const SQ2RND_VARIANTS=[
   ['SQ-Rnd CL both ways','CL'],
@@ -229,6 +246,41 @@ const SQ2RND_VARIANTS=[
   ['SQ-Rnd Right & Bottom','RB'],
   ['SQ-Rnd Right & Bottom (2)','RB2'],
 ];
+
+// ---------- RECTANGULAR > DUCT variants (from live configurator screens) ----------
+const RECT_DUCT=[
+  { code:'straight', label:'Straight Duct', shape:'rectduct', notes:true,
+    dims:[D('A','Width'),D('B','Depth'),D('C','Length',{max:59})], joints:RJn(2),
+    desc:'S&D Duct - unassembled / TDC Duct - assembled' },
+  { code:'hole', label:'Straight Duct with Hole', shape:'rectduct',
+    dims:[D('A','Width'),D('B','Depth'),D('C','Length'),D('D','Hole Length'),D('E','Hole Depth'),D('F','Hole Inset')], joints:RJn(2) },
+  { code:'filter', label:'Duct with Filter', shape:'rectduct',
+    dims:[D('A','Width'),D('B','Depth'),D('C','Length'),D('D','Inset'),D('E','Filter Width',{type:'select',options:FILTER_WIDTHS})], joints:RJn(2),
+    desc:'All Duct - assembled' },
+  { code:'damper', label:'Duct with Damper', shape:'rectduct',
+    dims:[D('A','Width'),D('B','Depth'),D('C','Length'),D('D','Inset')], joints:RJn(2) },
+  { code:'slip', label:'Slip Sleeve', shape:'rectduct',
+    dims:[D('A','Width'),D('B','Depth'),D('C','Height')], joints:RJn(2,'1 Flg Out') },
+  { code:'dto', label:'Straight Duct with Duct Take Off', shape:'rectduct',
+    dims:[D('A','Width'),D('B','Depth'),D('C','Length'),D('D','Take Off Width'),D('E','Take Off Depth'),D('F','Extension'),D('G','Inset')], joints:RJn(3) },
+  { code:'dtobd', label:'Straight Duct with Duct Take Off cw BD', shape:'rectduct',
+    dims:[D('A','Width'),D('B','Depth'),D('C','Length'),D('D','Take Off Width'),D('E','Take Off Depth'),D('F','Extension'),D('G','Inset')], joints:RJn(3) },
+  { code:'dto2', label:'Straight Duct with 2 Duct Take Offs', shape:'rectduct',
+    dims:[D('A','Width'),D('B','Depth'),D('C','Length'),D('D','Take Off Width'),D('E','Take Off Depth'),D('F','Extension'),D('G','Inset'),
+          D('H','Take Off Width'),D('I','Take Off Depth'),D('J','Extension'),D('K','Inset')], joints:RJn(4) },
+  { code:'dto2bd', label:'Straight Duct with 2 Duct Take Offs cw BD', shape:'rectduct',
+    dims:[D('A','Width'),D('B','Depth'),D('C','Length'),D('D','Take Off Width'),D('E','Take Off Depth'),D('F','Extension'),D('G','Inset'),
+          D('H','Take Off Width'),D('I','Take Off Depth'),D('J','Extension'),D('K','Inset')], joints:RJn(4) },
+  { code:'cto', label:'Straight Duct with CTO', shape:'rectduct',
+    dims:[D('A','Width'),D('B','Depth'),D('C','Length'),D('D','CTO Diameter'),D('E','Inset')], joints:RJn(2) },
+  { code:'ctobd', label:'Straight Duct with CTO cw BD', shape:'rectduct',
+    dims:[D('A','Width'),D('B','Depth'),D('C','Length'),D('D','CTO Diameter'),D('E','Inset')], joints:RJn(2) },
+  { code:'cto2', label:'Straight Duct with 2 CTOs', shape:'rectduct',
+    dims:[D('A','Width'),D('B','Depth'),D('C','Length'),D('D','CTO Diameter'),D('E','Inset'),D('F','CTO Diameter (2)'),D('G','Inset (2)')], joints:RJn(2) },
+  { code:'cto2bd', label:'Straight Duct with 2 CTOs cw BD', shape:'rectduct',
+    dims:[D('A','Width'),D('B','Depth'),D('C','Length'),D('D','CTO Diameter'),D('E','Inset'),D('F','CTO Diameter (2)'),D('G','Inset (2)')], joints:RJn(2) },
+];
+function rectDuctPart(v){ return Object.assign({ variantCode:v.code }, v); }
 
 // ---------- Catalog tree ----------
 function leaf(id,label,thumb){ return {id,label,thumb,soon:true}; }
@@ -257,11 +309,21 @@ const CATALOG={ id:'root', label:'Products', children:[
     ['Testing Equipment','misc'],['Vacuum','misc'],['Vehicle Equipment','misc'],['Welders and Plasma','misc'],
     ['Bottle Jack','misc'],['Green line & Dot laser kit','misc'],
   ]),
-  cat('rectangular','RECTANGULAR','rect',[
-    ['Duct','rect'],['End Caps','cap'],['Elbows & Tees','elbow'],['Transitions','reducer'],
-    ["Take Off's",'tee'],['Offsets','elbow'],['Flex','flex'],['Troffers / Grill','rect'],
-    ['Screens','misc'],['Volume Dampers','damper'],['Patches','rect'],['Loose Duct','rect'],
-  ]),
+  { id:'rectangular', label:'RECTANGULAR', thumb:'rect', children:[
+    { id:'duct', label:'DUCT', thumb:'rect',
+      children: RECT_DUCT.map(v=>({ id:'rd-'+v.code, label:v.label, thumb:'rect', part:rectDuctPart(v) })) },
+    leaf('rendcaps','End Caps','cap'),
+    leaf('relbows','Elbows & Tees','elbow'),
+    leaf('rtransitions','Transitions','reducer'),
+    leaf('rtakeoffs',"Take Off's",'tee'),
+    leaf('roffsets','Offsets','elbow'),
+    leaf('rflex','Flex','flex'),
+    leaf('rtroffers','Troffers / Grill','rect'),
+    leaf('rscreens','Screens','misc'),
+    leaf('rdampers','Volume Dampers','damper'),
+    leaf('rpatches','Patches','rect'),
+    leaf('rloose','Loose Duct','rect'),
+  ]},
   { id:'round', label:'ROUND', thumb:'round', children:[
     leaf('spiral','SPIRAL','spiral'),
     leaf('fabsnap','Fabricated and Snap','round'),
@@ -275,7 +337,7 @@ const CATALOG={ id:'root', label:'Products', children:[
     leaf('elbows','Elbows & Offsets','elbow'),
     leaf('reducers','Reducers','reducer'),
     { id:'sq2round', label:'SQUARE to ROUND', thumb:'sq2round',
-      children: SQ2RND_VARIANTS.map(([label,code])=>({ id:'s2r-'+code, label, thumb:'sq2round', part:s2rPart(code,code) })) },
+      children: SQ2RND_VARIANTS.map(([label,code])=>({ id:'s2r-'+code, label, thumb:'sq2round', part:s2rPart(code) })) },
     leaf('flex','Flex','flex'),
     leaf('coupler','Coupler','round'),
     leaf('damper','Damper','damper'),
@@ -345,8 +407,10 @@ function estimate(part, s){
   const wt=area*(p.gaugeWtPerSqFt[g]||1.156)*(p.materialWtMult[mat]||1);
   let price=area*p.fabPerSqFt*(p.materialMult[mat]||1);
   price+=area*(p.insulAddPerSqFt[s.insulation]||0);
-  price+=(p.jointAdd[s.j1]||0)+(p.jointAdd[s.j2]||0);
+  (part.joints||[]).forEach(j=>{ price+=(p.jointAdd[s[j.key]]||0); });
   if(part.shape==='sq2round') price*=p.fittingComplexity;
+  // rectangular fittings with taps/CTOs carry extra fabrication vs plain duct
+  else if(part.shape==='rectduct' && part.code && part.code!=='straight' && part.code!=='slip') price*=p.fittingComplexity;
   return { price:Math.round(price*100)/100, weight:Math.round(wt*10)/10, area:Math.round(area*10)/10 };
 }
 
@@ -450,21 +514,38 @@ function configureScreen(){
   const node=nodeAtPath(path);
   if(!node.part) return shell('order','<div class="empty">Part not found.</div>');
   const part=node.part;
+  const joints=part.joints||[];
   // working spec
   if(!window.__spec || window.__specPath!==path.join('/')){
-    window.__spec={ qty:1, material:OPTS.material[0], spec:OPTS.spec[0], gauge:OPTS.gauge[0], insulation:OPTS.insulation[0], j1:OPTS.j1[0], j2:OPTS.j2[0], tag:'', autoJoints:true };
+    window.__spec={ qty:1, material:OPTS.material[0], spec:OPTS.spec[0], gauge:OPTS.gauge[0], insulation:OPTS.insulation[0], tag:'', notes:'', autoJoints:true };
     part.dims.forEach(d=>window.__spec[d.key]='');
+    joints.forEach(j=>window.__spec[j.key]=j.def||j.options[0]);
     window.__specPath=path.join('/');
   }
   const s=window.__spec;
+  const isJoint=id=>joints.some(j=>j.key===id);
   const crumbs=crumbNodes(path).map((c,i,arr)=>{
     const cur=i===arr.length-1;
     return '<button class="crumb '+(cur?'cur':'')+'" onclick="go(\'catalog\',{path:'+jattr(c.path)+'})">'+(i>0?I.chevR:'')+esc(c.node.label)+'</button>';
   }).join('');
-  const dimFields=part.dims.map(d=>'<div class="field"><label>('+d.key+') '+esc(d.label)+' <span style="color:var(--ink-3);font-weight:400">[Inches]</span></label>'
-      +'<input type="number" min="0" step="0.25" value="'+esc(s[d.key])+'" placeholder="'+esc(d.label)+'" oninput="cfgDim(\''+d.key+'\',this.value)"></div>').join('');
-  const dd=(id,label,opts)=>'<div class="field"><label>'+label+'</label><select onchange="cfgSet(\''+id+'\',this.value)" '+((id==='j1'||id==='j2')&&s.autoJoints?'disabled':'')+'>'+opts.map(o=>'<option '+(String(s[id])===String(o)?'selected':'')+'>'+esc(o)+'</option>').join('')+'</select></div>';
+  const dimFields=part.dims.map(d=>{
+    const unit=d.type==='select'?'':' <span style="color:var(--ink-3);font-weight:400">[Inches]</span>';
+    const maxHint=d.max?' <span style="color:var(--ink-3);font-weight:400">(Max: '+d.max+')</span>':'';
+    let input;
+    if(d.type==='select'){
+      input='<select onchange="cfgSet(\''+d.key+'\',this.value)"><option value=""'+(s[d.key]===''?' selected':'')+'>Select…</option>'
+        +d.options.map(o=>'<option '+(String(s[d.key])===String(o)?'selected':'')+'>'+esc(o)+'</option>').join('')+'</select>';
+    } else {
+      input='<input type="number" min="0" step="0.25"'+(d.max?' max="'+d.max+'"':'')+' value="'+esc(s[d.key])+'" placeholder="'+esc(d.label)+'" oninput="cfgDim(\''+d.key+'\',this.value)">';
+    }
+    return '<div class="field"><label>('+d.key+') '+esc(d.label)+unit+maxHint+'</label>'+input+'</div>';
+  }).join('');
+  const dd=(id,label,opts)=>'<div class="field"><label>'+label+'</label><select onchange="cfgSet(\''+id+'\',this.value)" '+(isJoint(id)&&s.autoJoints?'disabled':'')+'>'+opts.map(o=>'<option '+(String(s[id])===String(o)?'selected':'')+'>'+esc(o)+'</option>').join('')+'</select></div>';
+  const jointFields=joints.map(j=>dd(j.key,j.label,j.options)).join('');
   const est=estimate(part,s);
+  const notesCard=part.notes?('<div class="card"><h2>Notes</h2><div class="body">'
+      +'<textarea rows="3" placeholder="Notes" oninput="cfgSet(\'notes\',this.value)" style="width:100%;padding:10px 12px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;resize:vertical">'+esc(s.notes)+'</textarea></div></div>'):'';
+  const descText=part.desc?(esc(part.desc)+'\n\n'+JOINT_DESC):JOINT_DESC;
   const inner='<div class="crumbs">'+crumbs+'</div>'
     +'<h1 class="page">Product ['+esc(node.label)+']</h1>'
     +'<div class="card"><div class="body"><div class="cfg-diagram">'+diagram(part,'A')+diagram(part,'B')+'</div></div></div>'
@@ -473,12 +554,13 @@ function configureScreen(){
       +'<div class="grid">'+dimFields+'</div></div></div>'
     +'<div class="card"><h2>Specification</h2><div class="body"><div class="grid">'
       +dd('material','Material',OPTS.material)+dd('spec','Specification',OPTS.spec)+dd('gauge','Gauge',OPTS.gauge)+dd('insulation','Insulation',OPTS.insulation)
-      +dd('j1','Joint (J1)',OPTS.j1)+dd('j2','Joint (J2)',OPTS.j2)
+      +jointFields
       +'<div class="field"><label>Tag</label><input value="'+esc(s.tag)+'" placeholder="Tag" oninput="cfgSet(\'tag\',this.value)"></div>'
       +'</div>'
       +'<label class="switch" style="margin-top:14px"><input type="checkbox" '+(s.autoJoints?'checked':'')+' onchange="cfgAuto(this.checked)"> Automatically Select Recommended Joints</label>'
       +'</div></div>'
-    +'<div class="card"><h2>Description</h2><div class="body"><div class="desc-box">'+esc(JOINT_DESC)+'</div></div></div>'
+    +notesCard
+    +'<div class="card"><h2>Description</h2><div class="body"><div class="desc-box">'+esc(descText)+'</div></div></div>'
     +'<div class="cfg-preview"><div><span>Unit price</span><b class="num" id="cfg-price">'+money(est.price)+'</b></div>'
       +'<div><span>Unit weight</span><b class="num" id="cfg-weight">'+est.weight+' lb</b></div>'
       +'<div><span>Sheet area</span><b class="num" id="cfg-area">'+est.area+' ft²</b></div></div>'
@@ -489,7 +571,7 @@ function configureScreen(){
 }
 function cfgDim(k,v){ window.__spec[k]=v===''?'':Number(v); cfgRefresh(); }
 function cfgSet(k,v){ window.__spec[k]=v; cfgRefresh(); }
-function cfgAuto(on){ window.__spec.autoJoints=on; if(on){ window.__spec.j1=OPTS.j1[0]; window.__spec.j2=OPTS.j2[0]; } render(); }
+function cfgAuto(on){ window.__spec.autoJoints=on; if(on){ const node=nodeAtPath(state.params.path||[]); (node.part.joints||[]).forEach(j=>window.__spec[j.key]=j.def||j.options[0]); } render(); }
 function cfgRefresh(){
   const node=nodeAtPath(state.params.path||[]); if(!node.part)return;
   const est=estimate(node.part,window.__spec);
@@ -506,6 +588,20 @@ function cfgAdd(){
 }
 // simple dimensioned trapezoid diagram (evokes the real square-to-round drawings)
 function diagram(part,view){
+  if(part.shape==='rectduct'){
+    if(view!=='A') return '';
+    const hasTap=/dto|cto/.test(part.code||''), two=/2/.test(part.code||'');
+    return '<div style="text-align:center"><svg width="220" height="130" viewBox="0 0 220 130" fill="none" stroke="var(--ink-2)" stroke-width="1.4">'
+      +'<rect x="30" y="45" width="160" height="40" fill="var(--line)"/>'
+      +(hasTap?'<rect x="'+(two?'70':'95')+'" y="20" width="28" height="25" fill="var(--surface)"/>'+(two?'<rect x="130" y="85" width="28" height="25" fill="var(--surface)"/>':''):'')
+      +'<text x="110" y="18" text-anchor="middle" font-size="10" fill="var(--danger)" stroke="none">C</text>'
+      +'<line x1="30" y1="14" x2="190" y2="14" stroke="var(--danger)" stroke-width="0.8"/>'
+      +'<text x="18" y="68" font-size="10" fill="var(--danger)" stroke="none">J2</text>'
+      +'<text x="196" y="68" font-size="10" fill="var(--danger)" stroke="none">J1</text>'
+      +'<text x="205" y="70" font-size="10" fill="var(--ink-3)" stroke="none">A</text>'
+      +'<text x="110" y="70" text-anchor="middle" font-size="11" fill="var(--ink-3)" stroke="none">'+esc(part.variantCode||'')+'</text>'
+      +'</svg><div style="font-size:11px;color:var(--ink-3);margin-top:2px">Side View</div></div>';
+  }
   if(part.shape!=='sq2round'){ return '<svg width="150" height="130"></svg>'; }
   return '<div style="text-align:center"><svg width="160" height="140" viewBox="0 0 160 140" fill="none" stroke="var(--ink-2)" stroke-width="1.4">'
     +'<rect x="55" y="16" width="50" height="12" fill="var(--line)"/>'         // top collar
